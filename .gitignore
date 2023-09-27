@@ -1,0 +1,8 @@
+.env
+/dist
+/logs
+/node_modules
+/configuration.json
+/certs/ssl.cert
+/certs/ssl.key
+/docs/

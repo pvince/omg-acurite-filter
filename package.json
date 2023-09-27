@@ -1,0 +1,27 @@
+{
+  "name": "omg-acurite-filter",
+  "version": "1.0.0",
+  "author": "Paul Vincent",
+  "description": "Listens for data from OpenMQTTGateway and relays it back to MQTT after filtering out suspect data.",
+  "scripts": {
+    "build": "tsc",
+    "start": "node -r ts-node/register src/app.ts"
+  },
+  "dependencies": {
+    "async-mqtt": "^2.6.3",
+    "debug": "^4.3.4",
+    "dotenv": "^16.3.1",
+    "lodash": "^4.17.21",
+    "toad-scheduler": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/debug": "^4.1.9",
+    "@types/node": "^20.7.0",
+    "@typescript-eslint/eslint-plugin": "^6.7.3",
+    "@typescript-eslint/parser": "^6.7.3",
+    "eslint": "^8.50.0",
+    "eslint-plugin-jsdoc": "^46.8.2",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2"
+  }
+}
