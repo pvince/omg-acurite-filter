@@ -9,14 +9,16 @@ async function startMQTT(): Promise<void> {
   });
 }
 
-function printTopic(message: Buffer) {
+function printTopic(topic: string, message: Buffer) {
   const jsonConfig = message.toString();
-  console.log(jsonConfig);
+  console.log(`[${topic}] => ${jsonConfig}`);
 }
 
 async function subscribe(): Promise<void> {
   if (mqttComms.isConnected()) {
-    await mqttComms.subscribe(configuration.mqttSrcTopic + "/#", printTopic);
+    const topic = configuration.mqttSrcTopic + "/#";
+    console.log("Subscribing to " + topic);
+    await mqttComms.subscribe(topic, printTopic);
   }
 }
 

@@ -5,13 +5,106 @@ import { IClientOptions, IClientPublishOptions, MqttClient } from 'mqtt';
 /**
  * Callback function invoked when a message is received.
  */
-export type fnMessageCallback = (message: Buffer) => void;
+export type fnMessageCallback = (topic: string, message: Buffer) => void;
 
 const log = debug('omg-acurite-filter:mqttComms');
 
 let client: MqttClient | null = null;
 
-const subscriptionCache = new Map<string, fnMessageCallback>();
+function hasWildcards(topic: string): boolean {
+  return topic.includes("+") || topic.includes("#");
+}
+
+function buildRegex(topic: string): RegExp {
+  let tmpStr = topic;
+  tmpStr = tmpStr.replaceAll("/", "\\/");
+  tmpStr = tmpStr.replaceAll("+", "\\w*");
+  tmpStr = tmpStr.replaceAll("#", ".+");
+  return new RegExp(tmpStr);
+}
+
+class MqttTopicCallbackPair {
+  public readonly topic: string;
+  public readonly isWildcard: boolean;
+  public readonly callback: fnMessageCallback;
+
+  private readonly topic_re: RegExp;
+
+  constructor(topic: string, callback: fnMessageCallback) {
+    this.topic = topic;
+    this.isWildcard = hasWildcards(topic);
+    this.callback = callback;
+    this.topic_re = buildRegex(topic);
+  }
+
+  isMatch(topic: string): boolean {
+    if (!this.isWildcard) {
+      return this.topic === topic;
+    } else {
+      return this.topic_re.test(topic);
+    }
+  }
+}
+
+class SubscriptionCache {
+  private readonly cacheMap = new Map<string, MqttTopicCallbackPair>();
+  private wildcardTopicCount = 0;
+
+  public add(topic: string, callback: fnMessageCallback) {
+    // If the topic has wildcards, life gets more complicated. Multiple callbacks can be triggered, multiple topics
+    // will map to the same callback. We only need to run the 'complicated' handling if there are any wildcard topics.
+    if (hasWildcards(topic) && !this.has(topic)) {
+      this.wildcardTopicCount++;
+    }
+    this.cacheMap.set(topic, new MqttTopicCallbackPair(topic, callback));
+  }
+
+  public has(topic: string): boolean {
+    return this.cacheMap.has(topic);
+  }
+
+  public get(topic: string): fnMessageCallback[] {
+    let result: fnMessageCallback[] = [];
+
+    if (this.hasWildcardTopics()) {
+      // We know we have some wildcards, which means we need to scan all the subscriptions for any that might match
+      // this topic.
+      result = this.gatherCallbacks(topic);
+    } else {
+      // This is the simple case, we can just check to see if a specific topic is in our cache and return the callback.
+      const topicCallbackPair = this.cacheMap.get(topic);
+      if (topicCallbackPair !== undefined) {
+        result = [topicCallbackPair.callback];
+      }
+    }
+
+    return result;
+  }
+
+  public remove(topic: string) {
+    if (hasWildcards(topic) && this.has(topic) ) {
+      this.wildcardTopicCount--;
+    }
+    this.cacheMap.delete(topic);
+  }
+
+  private hasWildcardTopics() {
+    return this.wildcardTopicCount > 0;
+  }
+
+  private gatherCallbacks(topic: string): fnMessageCallback[] {
+    const result: fnMessageCallback[] = [];
+    for (const topicCallbackPair of this.cacheMap.values())  {
+      if (topicCallbackPair.isMatch(topic)) {
+        result.push(topicCallbackPair.callback);
+      }
+    }
+    return result;
+  }
+
+}
+
+const subscriptionCache = new SubscriptionCache();
 
 /**
  * Retrieves the current MQTT Client.
@@ -46,10 +139,12 @@ export async function startClient(host: string, opts?: IClientOptions): Promise<
 
     // If we receive a message, direct it to the configured handler.
     client.on('message', (topic, message) => {
-      const callback = subscriptionCache.get(topic);
-      if (callback !== undefined) {
+      const callbackArray = subscriptionCache.get(topic);
+      if (callbackArray !== undefined) {
         try {
-          callback(message);
+          for (const callback of callbackArray) {
+            callback(topic, message);
+          }
         } catch (err) {
           log('Subscription to %s triggered an error: %s', topic, err);
         }
@@ -91,7 +186,7 @@ export async function publish(topic: string, data: object | string, opts: IClien
  * @param callback - Callback function to invoke with any messages received.
  */
 export async function subscribe(topic: string, callback: fnMessageCallback): Promise<void> {
-  subscriptionCache.set(topic, callback);
+  subscriptionCache.add(topic, callback);
 
   await getClient().subscribeAsync(topic);
 }
@@ -104,7 +199,7 @@ export async function subscribe(topic: string, callback: fnMessageCallback): Pro
  */
 export async function unsubscribe(topic: string): Promise<void> {
   await getClient().unsubscribeAsync(topic);
-  subscriptionCache.delete(topic);
+  subscriptionCache.remove(topic);
 }
 
 /**
