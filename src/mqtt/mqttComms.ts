@@ -11,10 +11,21 @@ const log = debug('omg-acurite-filter:mqttComms');
 
 let client: MqttClient | null = null;
 
+/**
+ * Check if the specified topic includes wildcard characters.
+ * @param topic - Topic to check
+ * @returns - True if the topic contains wildcards, false otherwise.
+ */
 function hasWildcards(topic: string): boolean {
   return topic.includes("+") || topic.includes("#");
 }
 
+/**
+ * Construct a regex object from the topic. This assumes the topic has wildcards. There is no point calling this
+ * for topics that don't contain wildcards.
+ * @param topic - Topic to convert to a regex.
+ * @returns - Newly constructed RegExp that handles + and # wildcard values.
+ */
 function buildRegex(topic: string): RegExp {
   let tmpStr = topic;
   tmpStr = tmpStr.replaceAll("/", "\\/");
@@ -23,22 +34,56 @@ function buildRegex(topic: string): RegExp {
   return new RegExp(tmpStr);
 }
 
-class MqttTopicCallbackPair {
+/**
+ * Class that wraps up some of the complexity that can exist when a topic contains wildcard characters.
+ */
+class SubscriptionCacheEntry {
+  /**
+   * MQTT Topic we are subscribed too. This may contain wildcard characters, and should match whatever is the key in the
+   * cache.
+   */
   public readonly topic: string;
+
+  /**
+   * Does this topic contain wildcards?
+   */
   public readonly isWildcard: boolean;
+
+  /**
+   * The callback that will be triggered when a topic is received that matches the topic string.
+   */
   public readonly callback: fnMessageCallback;
 
-  private readonly topic_re: RegExp;
+  /**
+   * Internal RegExp object used to verify incoming topics match this topic. Only
+   * @private
+   */
+  private readonly topic_re: RegExp | null;
 
+  /**
+   * Constructor
+   * @param topic - Topic that is being monitored, may have wildcard characters.
+   * @param callback - Callback that should be triggered if we receive a message that matches this topic.
+   */
   constructor(topic: string, callback: fnMessageCallback) {
     this.topic = topic;
     this.isWildcard = hasWildcards(topic);
     this.callback = callback;
-    this.topic_re = buildRegex(topic);
+
+    // Only setup the topic_re if the topic has wildcards.
+    if (this.isWildcard)
+      this.topic_re = buildRegex(topic);
+    else
+      this.topic_re = null;
   }
 
+  /**
+   * Does the received topic match this wildcard?
+   * @param topic - Topic received from the MQTT broker. This SHOULD NOT contain wildcards.
+   * @returns - True if the incoming topic matches the stored topic.
+   */
   isMatch(topic: string): boolean {
-    if (!this.isWildcard) {
+    if (!this.isWildcard || this.topic_re === null) {
       return this.topic === topic;
     } else {
       return this.topic_re.test(topic);
@@ -46,25 +91,61 @@ class MqttTopicCallbackPair {
   }
 }
 
+/**
+ * Cache of MQTT topic subscriptions.
+ */
 class SubscriptionCache {
-  private readonly cacheMap = new Map<string, MqttTopicCallbackPair>();
+  /**
+   * Internal cache of topic subscriptions.
+   * @private
+   */
+  private readonly cacheMap = new Map<string, SubscriptionCacheEntry>();
+
+  /**
+   * Internal count of how many wildcard topics we are monitoring. This value should never be less than 0.
+   * @private
+   */
   private wildcardTopicCount = 0;
 
+  /**
+   * Add a new subscription to a topic. The topic may contain "+" or "#" wildcard characters.
+   *
+   * @param topic - Topic to subscribe to. This may be a wildcard topic.
+   * @param callback - Callback to trigger if an MQTT message is received with a topic that matches the provided 'topic'
+   *                   pattern.
+   */
   public add(topic: string, callback: fnMessageCallback) {
     // If the topic has wildcards, life gets more complicated. Multiple callbacks can be triggered, multiple topics
     // will map to the same callback. We only need to run the 'complicated' handling if there are any wildcard topics.
     if (hasWildcards(topic) && !this.has(topic)) {
       this.wildcardTopicCount++;
     }
-    this.cacheMap.set(topic, new MqttTopicCallbackPair(topic, callback));
+    this.cacheMap.set(topic, new SubscriptionCacheEntry(topic, callback));
   }
 
+  /**
+   * Does the provided topic specifically exist in the cache? This is an exact match check. The 'pattern' of the topic
+   * is not taken into account.
+   *
+   * @param topic - Topic to look for. The cached topic must be an exact match.
+   * @returns - True if the exact topic is found.
+   */
   public has(topic: string): boolean {
     return this.cacheMap.has(topic);
   }
 
+  /**
+   * Get a list of callback functions to invoke for the provided topic. The provided topic MAY NOT contain wildcard
+   * characters.
+   *
+   * @param topic - Topic from a received MQTT message that DOES NOT contain wildcard characters.
+   */
   public get(topic: string): fnMessageCallback[] {
     let result: fnMessageCallback[] = [];
+
+    if (hasWildcards(topic)) {
+      throw new Error("topic may not contain wildcard characters.");
+    }
 
     if (this.hasWildcardTopics()) {
       // We know we have some wildcards, which means we need to scan all the subscriptions for any that might match
@@ -81,6 +162,11 @@ class SubscriptionCache {
     return result;
   }
 
+  /**
+   * Removes the topic from our cache.
+   *
+   * @param topic - Remove this topic from our cache.
+   */
   public remove(topic: string) {
     if (hasWildcards(topic) && this.has(topic) ) {
       this.wildcardTopicCount--;
@@ -88,10 +174,24 @@ class SubscriptionCache {
     this.cacheMap.delete(topic);
   }
 
-  private hasWildcardTopics() {
+  /**
+   * Are we currently caching any wildcard topics?
+   *
+   * @returns - True if we are caching wildcard topics.
+   * @private
+   */
+  private hasWildcardTopics(): boolean {
     return this.wildcardTopicCount > 0;
   }
 
+  /**
+   * Searches our cache for any cached entries that match the provided topic. The provided topic must not contain any
+   * wildcard characters and should be from a received MQTT message.
+   *
+   * @param topic - Topic received from the MQTT broker. Should not contain any wildcard characters.
+   * @returns - An array of callback functions to invoke for that topic.
+   * @private
+   */
   private gatherCallbacks(topic: string): fnMessageCallback[] {
     const result: fnMessageCallback[] = [];
     for (const topicCallbackPair of this.cacheMap.values())  {
@@ -104,6 +204,9 @@ class SubscriptionCache {
 
 }
 
+/**
+ * Subscription cache to keep track of topics & callback functions.
+ */
 const subscriptionCache = new SubscriptionCache();
 
 /**
