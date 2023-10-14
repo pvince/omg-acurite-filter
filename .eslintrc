@@ -83,8 +83,7 @@
     "@typescript-eslint/lines-between-class-members": "error",
     "no-dupe-class-members": "off",
     "@typescript-eslint/no-dupe-class-members": "error",
-    "no-duplicate-imports": "off",
-    "@typescript-eslint/no-duplicate-imports": "error",
+    "no-duplicate-imports": "error",
     // "no-invalid-this": "off",
     // "@typescript-eslint/no-invalid-this": "error",
     "no-loop-func": "off",
@@ -149,7 +148,6 @@
     "@typescript-eslint/prefer-string-starts-ends-with": "error",
     "@typescript-eslint/prefer-ts-expect-error": "error",
     "@typescript-eslint/require-array-sort-compare": ["error", {"ignoreStringArrays": true}],
-    "@typescript-eslint/sort-type-union-intersection-members": "error",
     // "@typescript-eslint/strict-boolean-expressions": "error",
     "@typescript-eslint/switch-exhaustiveness-check": "error",
     "@typescript-eslint/type-annotation-spacing": "error",
@@ -180,7 +178,6 @@
     "jsdoc/implements-on-classes": "error", // Recommended
     // "jsdoc/match-description": "error",
     // "jsdoc/multiline-blocks": "error", // Recommended
-    "jsdoc/newline-after-description": "error", // Recommended
     "jsdoc/no-bad-blocks": "error",
     "jsdoc/no-defaults": "error",
     // "jsdoc/no-missing-syntax": "error",
