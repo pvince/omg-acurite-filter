@@ -32,6 +32,21 @@ class Configuration {
   public get log(): Debug.Debugger {
     return log;
   }
+
+  /**
+   * Valid temperature range in degrees celsius (considered valid if new value is +- by this setting)
+   */
+  public get validTemperatureRange(): number {
+    return 2.5;
+  }
+
+  /**
+   * Valid humidity range in percentages (considered valid if new value is +- by this setting)
+   */
+  public get validHumidityRange(): number {
+    return 10;
+  }
+
 }
 
 const configuration = new Configuration();

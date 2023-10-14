@@ -1,6 +1,6 @@
 import { IOMGDeviceBase } from '../mqtt/omg_devices/device';
 import configuration from './configuration';
-import { AcuriteDevice, AcuriteTypes, getUniqueID } from '../mqtt/omg_devices/acurite';
+import { AcuriteDevice, AcuriteTypes, getHumidity, getTemperature, getUniqueID } from '../mqtt/omg_devices/acurite';
 
 const log =  configuration.log.extend("dataCache");
 
@@ -20,6 +20,20 @@ export class DataEntry {
       return getUniqueID(this.data as AcuriteDevice);
     }
     return `${this.data.model}:${this.data.id}`;
+  }
+
+  public get_temperature(): number | null {
+    if (AcuriteTypes.includes(this.data.model)) {
+      return getTemperature(this.data as AcuriteDevice);
+    }
+    return null;
+  }
+
+  public get_humidity(): number | null {
+    if (AcuriteTypes.includes(this.data.model)) {
+      return getHumidity(this.data as AcuriteDevice);
+    }
+    return null;
   }
 }
 
@@ -47,6 +61,46 @@ function remove_stale_data(data_id: string, dataArray: DataEntry[]) {
 
 }
 
+function is_data_valid_generic(prev_data_array: DataEntry[], new_entry: DataEntry,
+                       data_type_name: string,
+                       get_value: (n: DataEntry | undefined)=>number | null,
+                       valid_range: number): boolean {
+  const new_value = get_value(new_entry);
+  const prev_value = get_value(prev_data_array[prev_data_array.length - 1]);
+
+  let isValid = new_value === null || prev_value === null;
+
+  if (new_value !== null && prev_value !== null) {
+    const valid_min = prev_value - valid_range;
+    const valid_max = prev_value + valid_range;
+
+    isValid = new_value >= valid_min && new_value <= valid_max;
+  }
+
+  if (!isValid) {
+    log(`Invalid ${data_type_name} Received! ${new_entry.get_unique_id()} [prev_value: ${prev_value}] [new_value: ${new_value}]`);
+  }
+
+  return isValid;
+}
+
+function is_temperature_valid(prev_data_array: DataEntry[], new_entry: DataEntry): boolean {
+  const get_value = (n:  DataEntry | undefined) => (n?.get_temperature() ?? null);
+  return is_data_valid_generic(prev_data_array, new_entry,
+    "Temperature", get_value, configuration.validTemperatureRange);
+}
+
+function is_humidity_valid(prev_data_array: DataEntry[], new_entry: DataEntry): boolean {
+  const get_value = (n:  DataEntry | undefined) => (n?.get_humidity() ?? null);
+  return is_data_valid_generic(prev_data_array, new_entry,
+    "Humidity", get_value, configuration.validHumidityRange);
+}
+
+function is_data_valid(prev_data_array: DataEntry[], new_entry: DataEntry): boolean {
+  return is_temperature_valid(prev_data_array, new_entry) ||
+    is_humidity_valid(prev_data_array, new_entry);
+}
+
 class DataCache {
   private cache = new Map<string, DataEntry[]>()
 
@@ -63,8 +117,10 @@ class DataCache {
 
     remove_stale_data(dataEntry.get_unique_id(), dataArray);
 
-    dataArray.push(dataEntry);
-    log(`Cache Size: ${dataArray.length}`);
+    if (is_data_valid(dataArray, dataEntry)) {
+      dataArray.push(dataEntry);
+      log(`Cache Size: ${dataArray.length}`);
+    }
   }
 }
 

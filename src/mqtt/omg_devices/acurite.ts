@@ -59,3 +59,22 @@ export function getUniqueID(acuriteDevice: AcuriteDevice): string {
   return `${acuriteDevice.channel}:${acuriteDevice.model}:${acuriteDevice.id}`;
 }
 
+export function getTemperature(acuriteDevice: AcuriteDevice): number | null {
+  if (acuriteDevice.model === KnownType.AcuriteTower || acuriteDevice.model === KnownType.AcuriteProIn) {
+    return acuriteDevice.temperature_C;
+  } else if (acuriteDevice.model === KnownType.Acurite5n1 &&
+    acuriteDevice.message_type === Acurite5n1MessageType.SpeedAndTemp ) {
+    return acuriteDevice.temperature_C;
+  }
+  return null;
+}
+
+export function getHumidity(acuriteDevice: AcuriteDevice): number | null {
+  if (acuriteDevice.model === KnownType.AcuriteTower || acuriteDevice.model === KnownType.AcuriteProIn) {
+    return acuriteDevice.humidity;
+  } else if (acuriteDevice.model === KnownType.Acurite5n1 &&
+    acuriteDevice.message_type === Acurite5n1MessageType.SpeedAndTemp ) {
+    return acuriteDevice.humidity;
+  }
+  return null;
+}
