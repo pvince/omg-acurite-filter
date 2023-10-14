@@ -1,6 +1,8 @@
 import 'dotenv/config';
+import Debug from 'debug';
 
 const UNSET = '<unset>';
+const log = Debug("omg-acurite-filter");
 
 class Configuration {
   public get mqttHost(): string {
@@ -25,6 +27,10 @@ class Configuration {
 
   public get maxCacheAge(): number {
     return 5 * 60 * 1000;
+  }
+
+  public get log(): Debug.Debugger {
+    return log;
   }
 }
 

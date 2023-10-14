@@ -1,6 +1,8 @@
-import { IOMGDeviceBase, KnownType } from '../mqtt/omg_devices/device';
+import { IOMGDeviceBase } from '../mqtt/omg_devices/device';
 import configuration from './configuration';
-import { AcuriteDevice, getUniqueID } from '../mqtt/omg_devices/acurite';
+import { AcuriteDevice, AcuriteTypes, getUniqueID } from '../mqtt/omg_devices/acurite';
+
+const log =  configuration.log.extend("dataCache");
 
 export class DataEntry {
   public readonly topic: string;
@@ -14,28 +16,33 @@ export class DataEntry {
   }
 
   public get_unique_id(): string {
-    if (this.data.model === KnownType.Acurite5n1) {
+    if (AcuriteTypes.includes(this.data.model)) {
       return getUniqueID(this.data as AcuriteDevice);
     }
     return `${this.data.model}:${this.data.id}`;
   }
 }
 
-function remove_stale_data(dataArray: DataEntry[]) {
+function remove_stale_data(data_id: string, dataArray: DataEntry[]) {
   if (dataArray.length === 0)
     return;
 
   const timestampCutoff = new Date(Date.now() - (configuration.maxCacheAge));
 
+  let startCount = dataArray.length;
+  let ageOutCount = 0;
   let finished = false;
   while (!finished && dataArray.length > 0) {
     if (dataArray[0].timestamp < timestampCutoff) {
-      console.log(`${dataArray[0].data.model}:${dataArray[0].data.id} aging out of cache!}`);
-
-      dataArray.pop();
+      ageOutCount++;
+      dataArray.shift();
     } else {
       finished = true;
     }
+  }
+
+  if (ageOutCount > 0) {
+    log(`${data_id} aged out ${ageOutCount}/${startCount} entries!`);
   }
 
 }
@@ -54,10 +61,10 @@ class DataCache {
       this.cache.set(dataEntry.get_unique_id(), dataArray);
     }
 
-    remove_stale_data(dataArray);
+    remove_stale_data(dataEntry.get_unique_id(), dataArray);
 
     dataArray.push(dataEntry);
-    console.log(`Cache Size: ${dataArray.length}`);
+    log(`Cache Size: ${dataArray.length}`);
   }
 }
 
