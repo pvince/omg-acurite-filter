@@ -1,6 +1,6 @@
 import { IOMGDeviceBase } from '../mqtt/omg_devices/device';
 import configuration from './configuration';
-import { AcuriteDevice, AcuriteTypes, getHumidity, getTemperature, getUniqueID } from '../mqtt/omg_devices/acurite';
+import { AcuriteDevice, AcuriteTypes, getAcuriteHumidity, getAcuriteTemperature, getUniqueAcuriteID } from '../mqtt/omg_devices/acurite';
 
 const log =  configuration.log.extend("dataCache");
 
@@ -17,21 +17,21 @@ export class DataEntry {
 
   public get_unique_id(): string {
     if (AcuriteTypes.includes(this.data.model)) {
-      return getUniqueID(this.data as AcuriteDevice);
+      return getUniqueAcuriteID(this.data as AcuriteDevice);
     }
     return `${this.data.model}:${this.data.id}`;
   }
 
   public get_temperature(): number | null {
     if (AcuriteTypes.includes(this.data.model)) {
-      return getTemperature(this.data as AcuriteDevice);
+      return getAcuriteTemperature(this.data as AcuriteDevice);
     }
     return null;
   }
 
   public get_humidity(): number | null {
     if (AcuriteTypes.includes(this.data.model)) {
-      return getHumidity(this.data as AcuriteDevice);
+      return getAcuriteHumidity(this.data as AcuriteDevice);
     }
     return null;
   }
