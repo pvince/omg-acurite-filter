@@ -22,6 +22,10 @@ class Configuration {
   public get isDebug(): boolean {
     return process.env.ISDEBUG === 'true';
   }
+
+  public get maxCacheAge(): number {
+    return 5 * 60 * 1000;
+  }
 }
 
 const configuration = new Configuration();

@@ -1,6 +1,8 @@
 
 import * as mqttComms from './mqtt/mqttComms';
 import configuration from './services/configuration';
+import dataCache, { DataEntry } from './services/datacache';
+import { IOMGDeviceBase } from './mqtt/omg_devices/device';
 
 async function startMQTT(): Promise<void> {
   await mqttComms.startClient(configuration.mqttHost, {
@@ -9,16 +11,31 @@ async function startMQTT(): Promise<void> {
   });
 }
 
-function printTopic(topic: string, message: Buffer) {
+function processTopic(topic: string, message: Buffer) {
   const jsonConfig = message.toString();
-  console.log(`[${topic}] => ${jsonConfig}`);
+  try {
+    const messageObj = JSON.parse(jsonConfig);
+
+    if (messageObj.hasOwnProperty("id")) {
+      const device = messageObj as  IOMGDeviceBase;
+      const dataEntry = new DataEntry(topic, device);
+      console.log(`[${topic}] => IOMGDevice: ${device.model}\t${device.id}`);
+
+      dataCache.add(topic, dataEntry);
+    } else {
+      console.error(`Unknown Message Type! [${topic}] => ${jsonConfig}`);
+    }
+  } catch (e) {
+    console.error(`Failed to parse [${topic}] => ${jsonConfig}`);
+  }
+
 }
 
 async function subscribe(): Promise<void> {
   if (mqttComms.isConnected()) {
     const topic = configuration.mqttSrcTopic + "/#";
     console.log("Subscribing to " + topic);
-    await mqttComms.subscribe(topic, printTopic);
+    await mqttComms.subscribe(topic, processTopic);
   }
 }
 
