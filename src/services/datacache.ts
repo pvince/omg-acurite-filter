@@ -16,7 +16,6 @@ export class DataEntry {
 
   /**
    * Constructor
-   *
    * @param topic - MQTT Topic
    * @param data - MQTT message data
    */
@@ -28,7 +27,6 @@ export class DataEntry {
 
   /**
    * Gets a unique identifier for this data entry.
-   *
    * @returns - Returns a unique identifier for this data entry.
    */
   public get_unique_id(): string {
@@ -40,7 +38,6 @@ export class DataEntry {
 
   /**
    * The temperature for this data entry, null if no temperature is associated with it.
-   *
    * @returns - The temperature for this data entry, null if no temperature is associated with it.
    */
   public get_temperature(): number | null {
@@ -53,7 +50,6 @@ export class DataEntry {
 
   /**
    * The humidity for this data entry, null if no humidity is associated with it.
-   *
    * @returns - The humidity for this data entry, null if no humidity is associated with it.
    */
   public get_humidity(): number | null {
@@ -66,7 +62,6 @@ export class DataEntry {
 
 /**
  * Scans the provided dataArray for data that is older than the maximum cache age, and removes it.
- *
  * @param data_id - Unique identifier for the data that is currently being processed. Used for log messages.
  * @param dataArray - Data array to process.
  */
@@ -98,7 +93,6 @@ function remove_stale_data(data_id: string, dataArray: DataEntry[]): void {
 /**
  * This is a common method that verifies that the new data entry is valid in the context of the previously received
  * data.
- *
  * @param prev_data_array - Previously received set of data values
  * @param new_entry - Newly received data entry
  * @param data_type_name - Identifier name for this type of data. This is used in log messages.
@@ -131,7 +125,6 @@ function is_data_valid_generic(prev_data_array: DataEntry[], new_entry: DataEntr
 
 /**
  * Does the newly received data have a valid temperature?
- *
  * @param prev_data_array - Previously received set of data values
  * @param new_entry - Newly received data entry
  * @returns - True if the data is valid, false otherwise.
@@ -144,7 +137,6 @@ function is_temperature_valid(prev_data_array: DataEntry[], new_entry: DataEntry
 
 /**
  * Does the newly received data have a valid humidity?
- *
  * @param prev_data_array - Previously received set of data values
  * @param new_entry - Newly received data entry
  * @returns - True if the data is valid, false otherwise.
@@ -157,7 +149,6 @@ function is_humidity_valid(prev_data_array: DataEntry[], new_entry: DataEntry): 
 
 /**
  * Does the newly received data have valid values?
- *
  * @param prev_data_array - Previously received set of data values
  * @param new_entry - Newly received data entry
  * @returns - True if the data is valid, false otherwise.
@@ -175,7 +166,6 @@ class DataCache {
 
   /**
    * Retrieve a data array that could hold  the current data entry.
-   *
    * @param dataEntry - Newly received data entry
    * @returns - Cached data entry array for the provided data.
    */
@@ -191,7 +181,6 @@ class DataCache {
 
   /**
    * Adds a newly received data entry.
-   *
    * @param topic - MQTT topic for the data entry
    * @param dataEntry - Newly received data entry to add to cache.
    */

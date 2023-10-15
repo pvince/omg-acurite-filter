@@ -136,7 +136,6 @@ class SubscriptionCache {
   /**
    * Get a list of callback functions to invoke for the provided topic. The provided topic MAY NOT contain wildcard
    * characters.
-   *
    * @param topic - Topic from a received MQTT message that DOES NOT contain wildcard characters.
    * @returns - List of callback functions for this topic
    * @throws Error If the topic contains wildcard characters

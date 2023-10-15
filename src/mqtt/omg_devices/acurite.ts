@@ -130,7 +130,6 @@ export const AcuriteTypes = [ KnownType.Acurite5n1, KnownType.AcuriteTower, Know
 
 /**
  * Builds a unique ID for acurite devices.
- *
  * @param acuriteDevice - Acurite device to build an ID for.
  * @returns - A unique ID for an Acurite device.
  */
@@ -140,8 +139,7 @@ export function getUniqueAcuriteID(acuriteDevice: AcuriteDevice): string {
 
 /**
  * Temperature for an Acurite device, or null.
- *
- * @param acuriteDevice Acurite device to get the temperature for
+ * @param acuriteDevice - Acurite device to get the temperature for
  * @returns - The temperature for the acurite device, or null if there is no temperature for this device.
  */
 export function getAcuriteTemperature(acuriteDevice: AcuriteDevice): number | null {
@@ -156,8 +154,7 @@ export function getAcuriteTemperature(acuriteDevice: AcuriteDevice): number | nu
 
 /**
  * Humidity for an acurite device, or null
- *
- * @param acuriteDevice Acurite device to get the temperature for
+ * @param acuriteDevice - Acurite device to get the temperature for
  * @returns - The humidity for the acurite device, or null if there is no humidity for this device.
  */
 export function getAcuriteHumidity(acuriteDevice: AcuriteDevice): number | null {

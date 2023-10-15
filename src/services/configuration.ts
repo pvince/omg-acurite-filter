@@ -11,7 +11,6 @@ const log = Debug('omg-acurite-filter');
 class Configuration {
   /**
    * MQTT Host name, defined by the environment variable MQTT_HOST
-   *
    * @example mqtt://192.168.1.15
    * @returns = MQTT host name
    */
@@ -21,7 +20,6 @@ class Configuration {
 
   /**
    * MQTT username, defined by the environment variable MQTT_USER
-   *
    * @example mqtt_username
    * @returns = MQTT username
    */
@@ -31,7 +29,6 @@ class Configuration {
 
   /**
    * MQTT user's password, defined by the environment variable MQTT_PASS
-   *
    * @example MySweetPassword
    * @returns = MQTT user's password
    */
@@ -42,7 +39,6 @@ class Configuration {
   /**
    * Topic to subscribe too, defined by the environment variable MQTT_SRC_TOPIC. May contain MQTT topic wildcard
    * characters (+, #) but should not end in one.
-   *
    * @example 433_direct/+/RTL_433toMQTT
    * @returns = MQTT topic
    */
@@ -52,7 +48,6 @@ class Configuration {
 
   /**
    * Is the service running in debug mode? ISDEBUG env variable.
-   *
    * @example true
    * @returns = True if the service is running in debug mode.
    */
@@ -62,9 +57,7 @@ class Configuration {
 
   /**
    * Maximum length of time a MQTT message is kept in cache in milliseconds.
-   *
    * Default is 5 minutes.
-   *
    * @returns = Length of time a MQTT message is kept in cache in milliseconds.
    */
   public get maxCacheAge(): number {
