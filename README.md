@@ -18,4 +18,28 @@
 * Every Y seconds, send the 'latest' valid data reading 
   * Only send _new_ readings though, if we already sent it, flag it as such.
 
-# TODO
+# Other validation ideas
+* Many times we receive multiple copies of the same message, each from a different receiver.
+  * The messages arrive nearly simultaneously. 
+    * Maybe we store any messages received in the last X ms into a special buffer?
+    * We could look back in the buffer for messages received in the last X milliseconds.
+    * When sending messages via our scheduler, we could ignore very recently received messages to allow msg validation
+      to fully run, but this would complicate the send logic.
+  * All messages in the buffer should be equal. 
+    * If we have 3+ messages, we can throw out the odd one.
+    * What do we do when we have 2 messages, and one doesn't agree?
+    * `[]` = All message buffer
+    * `()` = Within last 100 ms
+    * `{t-Xs}` = Message received X seconds ago
+    * `[ 66 {t-15s}, 66 {t-15s}, 66.1 {t-10s}, (63.6, 66.1) ]`
+      * This looks suspicious, `0 → 0.1 → -2.5 → 2.5`
+      * We could:
+        * Drop both messages? Would only require 2 receivers to do error elimination
+          * 63.6
+          * 63.6, 66.1
+          * ~~63.6, 66.1~~ [discard 2]
+        * Wait until we have 3 simultaneous messages? Would require 3 receivers, but would be error correction.
+          * 63.6
+          * 63.6, 66.1
+          * 63.6, 66.1, 66.1
+          * ~~63.6~~, 66.1, 66.1
