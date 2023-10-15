@@ -5,7 +5,8 @@
   "description": "Listens for data from OpenMQTTGateway and relays it back to MQTT after filtering out suspect data.",
   "scripts": {
     "build": "tsc",
-    "start": "node -r ts-node/register src/app.ts"
+    "start": "node -r ts-node/register src/app.ts",
+    "test": "mocha -r ts-node/register src/**/*.spec.ts"
   },
   "dependencies": {
     "debug": "^4.3.4",
@@ -15,13 +16,18 @@
     "toad-scheduler": "^3.0.0"
   },
   "devDependencies": {
+    "@types/chai": "^4.3.8",
     "@types/debug": "^4.1.9",
+    "@types/mocha": "^10.0.2",
     "@types/node": "^20.7.0",
     "@typescript-eslint/eslint-plugin": "^6.7.3",
     "@typescript-eslint/parser": "^6.7.3",
+    "chai": "^4.3.10",
     "eslint": "^8.50.0",
     "eslint-plugin-jsdoc": "^46.8.2",
+    "mocha": "^10.2.0",
     "ts-node": "^10.9.1",
+    "ts-node-register": "^1.0.0",
     "typescript": "^5.2.2"
   }
 }

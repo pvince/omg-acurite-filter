@@ -153,8 +153,8 @@ function is_humidity_valid(prev_data_array: DataEntry[], new_entry: DataEntry): 
  * @param new_entry - Newly received data entry
  * @returns - True if the data is valid, false otherwise.
  */
-function is_data_valid(prev_data_array: DataEntry[], new_entry: DataEntry): boolean {
-  return is_temperature_valid(prev_data_array, new_entry) ||
+export function is_data_valid(prev_data_array: DataEntry[], new_entry: DataEntry): boolean {
+  return is_temperature_valid(prev_data_array, new_entry) &&
     is_humidity_valid(prev_data_array, new_entry);
 }
 
