@@ -1,6 +1,7 @@
 import * as mqtt from 'mqtt';
 import debug from 'debug';
 import { IClientOptions, IClientPublishOptions, MqttClient } from 'mqtt';
+import _ from 'lodash';
 
 /**
  * Callback function invoked when a message is received.
@@ -273,7 +274,11 @@ export async function stopClient(): Promise<void> {
  * @param opts - MQTT options for this publish
  */
 export async function publish(topic: string, data: object | string, opts: IClientPublishOptions = {}): Promise<void> {
-  await getClient().publishAsync(topic, JSON.stringify(data), opts);
+  let message = data;
+  if (!_.isString(message)) {
+    message = JSON.stringify(data);
+  }
+  await getClient().publishAsync(topic, message, opts);
 }
 
 /**

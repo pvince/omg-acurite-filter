@@ -1,14 +1,19 @@
 import { IOMGDeviceBase } from '../mqtt/omg_devices/device';
 import configuration from './configuration';
 import { AcuriteDevice, AcuriteTypes, getAcuriteHumidity, getAcuriteTemperature, getUniqueAcuriteID } from '../mqtt/omg_devices/acurite';
+import { IMQTTMessage } from '../mqtt/IMQTTMessage';
 
 const log =  configuration.log.extend('dataCache');
+
+
 
 /**
  * Individual data entry.
  */
-export class DataEntry {
+export class DataEntry implements IMQTTMessage {
   public readonly topic: string;
+
+  public readonly message: string;
 
   public readonly data: IOMGDeviceBase;
 
@@ -22,6 +27,7 @@ export class DataEntry {
   public constructor(topic: string, data: IOMGDeviceBase) {
     this.topic = topic;
     this.data = data;
+    this.message = JSON.stringify(data);
     this.timestamp = new Date();
   }
 
