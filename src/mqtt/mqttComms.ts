@@ -17,7 +17,7 @@ let client: MqttClient | null = null;
  * @returns - True if the topic contains wildcards, false otherwise.
  */
 function hasWildcards(topic: string): boolean {
-  return topic.includes("+") || topic.includes("#");
+  return topic.includes('+') || topic.includes('#');
 }
 
 /**
@@ -28,9 +28,9 @@ function hasWildcards(topic: string): boolean {
  */
 function buildRegex(topic: string): RegExp {
   let tmpStr = topic;
-  tmpStr = tmpStr.replaceAll("/", "\\/");
-  tmpStr = tmpStr.replaceAll("+", "\\w*");
-  tmpStr = tmpStr.replaceAll("#", ".+");
+  tmpStr = tmpStr.replaceAll('/', '\\/');
+  tmpStr = tmpStr.replaceAll('+', '\\w*');
+  tmpStr = tmpStr.replaceAll('#', '.+');
   return new RegExp(tmpStr);
 }
 
@@ -65,16 +65,17 @@ class SubscriptionCacheEntry {
    * @param topic - Topic that is being monitored, may have wildcard characters.
    * @param callback - Callback that should be triggered if we receive a message that matches this topic.
    */
-  constructor(topic: string, callback: fnMessageCallback) {
+  public constructor(topic: string, callback: fnMessageCallback) {
     this.topic = topic;
     this.isWildcard = hasWildcards(topic);
     this.callback = callback;
 
     // Only setup the topic_re if the topic has wildcards.
-    if (this.isWildcard)
+    if (this.isWildcard) {
       this.topic_re = buildRegex(topic);
-    else
+    } else {
       this.topic_re = null;
+    }
   }
 
   /**
@@ -82,7 +83,7 @@ class SubscriptionCacheEntry {
    * @param topic - Topic received from the MQTT broker. This SHOULD NOT contain wildcards.
    * @returns - True if the incoming topic matches the stored topic.
    */
-  isMatch(topic: string): boolean {
+  public isMatch(topic: string): boolean {
     if (!this.isWildcard || this.topic_re === null) {
       return this.topic === topic;
     } else {
@@ -109,12 +110,11 @@ class SubscriptionCache {
 
   /**
    * Add a new subscription to a topic. The topic may contain "+" or "#" wildcard characters.
-   *
    * @param topic - Topic to subscribe to. This may be a wildcard topic.
    * @param callback - Callback to trigger if an MQTT message is received with a topic that matches the provided 'topic'
-   *                   pattern.
+   * pattern.
    */
-  public add(topic: string, callback: fnMessageCallback) {
+  public add(topic: string, callback: fnMessageCallback): void {
     // If the topic has wildcards, life gets more complicated. Multiple callbacks can be triggered, multiple topics
     // will map to the same callback. We only need to run the 'complicated' handling if there are any wildcard topics.
     if (hasWildcards(topic) && !this.has(topic)) {
@@ -126,7 +126,6 @@ class SubscriptionCache {
   /**
    * Does the provided topic specifically exist in the cache? This is an exact match check. The 'pattern' of the topic
    * is not taken into account.
-   *
    * @param topic - Topic to look for. The cached topic must be an exact match.
    * @returns - True if the exact topic is found.
    */
@@ -139,12 +138,14 @@ class SubscriptionCache {
    * characters.
    *
    * @param topic - Topic from a received MQTT message that DOES NOT contain wildcard characters.
+   * @returns - List of callback functions for this topic
+   * @throws Error If the topic contains wildcard characters
    */
   public get(topic: string): fnMessageCallback[] {
     let result: fnMessageCallback[] = [];
 
     if (hasWildcards(topic)) {
-      throw new Error("topic may not contain wildcard characters.");
+      throw new Error('topic may not contain wildcard characters.');
     }
 
     if (this.hasWildcardTopics()) {
@@ -164,10 +165,9 @@ class SubscriptionCache {
 
   /**
    * Removes the topic from our cache.
-   *
    * @param topic - Remove this topic from our cache.
    */
-  public remove(topic: string) {
+  public remove(topic: string): void {
     if (hasWildcards(topic) && this.has(topic) ) {
       this.wildcardTopicCount--;
     }
@@ -176,7 +176,6 @@ class SubscriptionCache {
 
   /**
    * Are we currently caching any wildcard topics?
-   *
    * @returns - True if we are caching wildcard topics.
    * @private
    */
@@ -187,7 +186,6 @@ class SubscriptionCache {
   /**
    * Searches our cache for any cached entries that match the provided topic. The provided topic must not contain any
    * wildcard characters and should be from a received MQTT message.
-   *
    * @param topic - Topic received from the MQTT broker. Should not contain any wildcard characters.
    * @returns - An array of callback functions to invoke for that topic.
    * @private
@@ -211,7 +209,6 @@ const subscriptionCache = new SubscriptionCache();
 
 /**
  * Retrieves the current MQTT Client.
- *
  * @returns - Current MQTT client
  * @throws {Error} Throws an error if the client is not initialized by {@link startClient}
  */
@@ -224,7 +221,6 @@ function getClient(): MqttClient {
 
 /**
  * Starts the MQTT client, starts listening to error events on mqtt as well.
- *
  * @param host - Host to connect too
  * @param opts - Connection options
  */
@@ -252,7 +248,7 @@ export async function startClient(host: string, opts?: IClientOptions): Promise<
           log('Subscription to %s triggered an error: %s', topic, err);
         }
       } else {
-        log("Unhandled message for topic %s", topic);
+        log('Unhandled message for topic %s', topic);
       }
     });
 
@@ -267,13 +263,12 @@ export async function startClient(host: string, opts?: IClientOptions): Promise<
  */
 export async function stopClient(): Promise<void> {
   if (client) {
-    await client.endAsync()
+    await client.endAsync();
   }
 }
 
 /**
  * Publishes an MQTT topic
- *
  * @param topic - Topic to publish too
  * @param data - Object to JSON-ify & send
  * @param opts - MQTT options for this publish
@@ -284,7 +279,6 @@ export async function publish(topic: string, data: object | string, opts: IClien
 
 /**
  * Allows for code to subscribe to MQTT topics.
- *
  * @param topic - Topic to subscribe too
  * @param callback - Callback function to invoke with any messages received.
  */
@@ -297,7 +291,6 @@ export async function subscribe(topic: string, callback: fnMessageCallback): Pro
 
 /**
  * Removes a subscription from MQTT topics.
- *
  * @param topic - Topic to unsubscribe from.
  */
 export async function unsubscribe(topic: string): Promise<void> {
@@ -307,7 +300,6 @@ export async function unsubscribe(topic: string): Promise<void> {
 
 /**
  * Clear //  delete the specified MQTT topic.
- *
  * @param topic - Topic to clear
  */
 export async function clearTopic(topic: string): Promise<void> {
@@ -316,7 +308,6 @@ export async function clearTopic(topic: string): Promise<void> {
 
 /**
  * Is the MQTT client connected?
- *
  * @returns True if it is connected, false otherwise.
  */
 export function isConnected(): boolean {
