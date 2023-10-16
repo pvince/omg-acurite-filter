@@ -2,7 +2,7 @@
 import { describe, it } from 'mocha';
 import { AcuriteBatteryOk, AcuriteChannel, IAcuriteTower } from '../mqtt/omg_devices/acurite';
 import { KnownType } from '../mqtt/omg_devices/device';
-import { DataEntry, is_data_valid } from './datacache';
+import { DataEntry, is_data_valid } from './dataCache';
 import { expect } from 'chai';
 import configuration from './configuration';
 
