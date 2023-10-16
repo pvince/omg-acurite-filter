@@ -176,11 +176,19 @@ class DataCache {
    * @returns - Cached data entry array for the provided data.
    */
   public get(dataEntry: DataEntry): DataEntry[] {
+    return this.getByID(dataEntry.get_unique_id());
+  }
 
-    let dataArray = this.cache.get(dataEntry.get_unique_id()) ?? null;
+  /**
+   * Retrieves a data entry array for the specified device_id.
+   * @param device_id - Unique device ID
+   * @returns - Cached data entry array for the provided unique device ID
+   */
+  public getByID(device_id: string): DataEntry[] {
+    let dataArray = this.cache.get(device_id) ?? null;
     if (dataArray === null) {
       dataArray = [];
-      this.cache.set(dataEntry.get_unique_id(), dataArray);
+      this.cache.set(device_id, dataArray);
     }
     return dataArray;
   }
