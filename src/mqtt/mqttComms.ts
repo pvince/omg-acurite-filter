@@ -2,6 +2,7 @@ import * as mqtt from 'mqtt';
 import debug from 'debug';
 import { IClientOptions, IClientPublishOptions, MqttClient } from 'mqtt';
 import _ from 'lodash';
+import { buildTopicRegex, hasWildcards } from './mqtt.util';
 
 /**
  * Callback function invoked when a message is received.
@@ -12,28 +13,6 @@ const log = debug('omg-acurite-filter:mqttComms');
 
 let client: MqttClient | null = null;
 
-/**
- * Check if the specified topic includes wildcard characters.
- * @param topic - Topic to check
- * @returns - True if the topic contains wildcards, false otherwise.
- */
-function hasWildcards(topic: string): boolean {
-  return topic.includes('+') || topic.includes('#');
-}
-
-/**
- * Construct a regex object from the topic. This assumes the topic has wildcards. There is no point calling this
- * for topics that don't contain wildcards.
- * @param topic - Topic to convert to a regex.
- * @returns - Newly constructed RegExp that handles + and # wildcard values.
- */
-function buildRegex(topic: string): RegExp {
-  let tmpStr = topic;
-  tmpStr = tmpStr.replaceAll('/', '\\/');
-  tmpStr = tmpStr.replaceAll('+', '\\w*');
-  tmpStr = tmpStr.replaceAll('#', '.+');
-  return new RegExp(tmpStr);
-}
 
 /**
  * Class that wraps up some of the complexity that can exist when a topic contains wildcard characters.
@@ -73,7 +52,7 @@ class SubscriptionCacheEntry {
 
     // Only setup the topic_re if the topic has wildcards.
     if (this.isWildcard) {
-      this.topic_re = buildRegex(topic);
+      this.topic_re = buildTopicRegex(topic);
     } else {
       this.topic_re = null;
     }

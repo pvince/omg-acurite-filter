@@ -6,6 +6,7 @@ import dataCache from './dataCache';
 
 const log = configuration.log.extend('msg-fwd-svc');
 
+
 /**
  * The role of this class is to throttle the torrent of MQTT data coming from multiple OMG Receivers.
  */

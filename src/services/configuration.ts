@@ -47,6 +47,16 @@ class Configuration {
   }
 
   /**
+   * Topic to forward messages too, defined by the environment variable MQTT_SRC_TOPIC. May contain MQTT topic wildcard
+   * characters (+, #) but should not end in one.
+   * @example 433_forwarded/forward/+/RTL_433toMQTT
+   * @returns = MQTT topic
+   */
+  public get mqttDestTopic(): string {
+    return process.env.MQTT_DEST_TOPIC ?? UNSET;
+  }
+
+  /**
    * Is the service running in debug mode? ISDEBUG env variable.
    * @example true
    * @returns = True if the service is running in debug mode.
