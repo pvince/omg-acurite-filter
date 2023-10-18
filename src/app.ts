@@ -28,7 +28,7 @@ function processTopic(topic: string, message: Buffer): void {
   try {
     const messageObj = JSON.parse(jsonConfig);
 
-    if (Object.hasOwn(messageObj, 'id')) {
+    if (Object.hasOwn(messageObj as object, 'id')) {
       const device = messageObj as  IOMGDeviceBase;
       const dataEntry = new DataEntry(topic, device);
       log(`[${topic}] => IOMGDevice: ${device.model}\t${device.id}`);
