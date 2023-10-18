@@ -3,6 +3,8 @@ import { IMQTTMessage } from '../mqtt/IMQTTMessage';
 import configuration from './configuration';
 import { getScheduler } from './jobScheduler';
 import dataCache from './dataCache';
+import { forwardTopic } from '../mqtt/mqtt.util';
+import { publish } from '../mqtt/mqttComms';
 
 const log = configuration.log.extend('msg-fwd-svc');
 
@@ -28,7 +30,7 @@ class MessageForwardingService {
    * @param device_id - ID of the device that triggered the message.
    * @param message - MQTT Message to send.
    */
-  public async throttleMessage(device_id: string, message: IMQTTMessage): Promise<void> {
+  public throttleMessage(device_id: string, message: IMQTTMessage): void {
     // Update the message to send.
     this.messages.set(device_id, message);
 
@@ -41,9 +43,9 @@ class MessageForwardingService {
    * @param message - MQTT Message to forward.
    */
   public async forwardMessage(message: IMQTTMessage): Promise<void> {
-    //todo: This needs to normalize|fix topics
-    // We received the message on something like 433_direct/original/OMG_lilygo_rtl_433_ESP_2/RTL_433toMQTT/Acurite-Tower/A/5812
-    //       We need to forward that message to: 433_direct/OMG_lilygo_rtl_433_ESP_2/RTL_433toMQTT/Acurite-Tower/A/5812
+    const forwardedTopic = forwardTopic(message.topic);
+    log(`Publishing to ${forwardedTopic}`);
+    await publish(forwardedTopic, message.message);
   }
 
   /**
@@ -79,7 +81,7 @@ class MessageForwardingService {
       curJob = new SimpleIntervalJob({ minutes: 1, runImmediately: true }, task);
       this.jobStore.set(device_id, curJob);
 
-      log('Starting job for device: %s', device_id);
+      log('Creating job for device: %s\tTotal Job Count: %d', device_id, this.jobStore.size);
 
       getScheduler().addSimpleIntervalJob(curJob);
     }

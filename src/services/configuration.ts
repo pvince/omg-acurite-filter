@@ -5,6 +5,21 @@ import { MS_IN_MINUTE } from '../constants';
 const UNSET = '<unset>';
 const log = Debug('omg-acurite-filter');
 
+function _forceEndingHash(topic: string | undefined): string | undefined {
+  let result = topic;
+  if (topic !== undefined) {
+    // Ensure the topic ends with /#
+    if (!topic.endsWith('/#')) {
+      if (!topic.endsWith('/')) {
+        result += '/#';
+      } else {
+        result += '#';
+      }
+    }
+  }
+  return result;
+}
+
 /**
  * Configuration class
  */
@@ -43,7 +58,7 @@ class Configuration {
    * @returns = MQTT topic
    */
   public get mqttSrcTopic(): string {
-    return process.env.MQTT_SRC_TOPIC ?? UNSET;
+    return _forceEndingHash(process.env.MQTT_SRC_TOPIC) ?? UNSET;
   }
 
   /**
@@ -53,7 +68,7 @@ class Configuration {
    * @returns = MQTT topic
    */
   public get mqttDestTopic(): string {
-    return process.env.MQTT_DEST_TOPIC ?? UNSET;
+    return _forceEndingHash(process.env.MQTT_DST_TOPIC) ?? UNSET;
   }
 
   /**

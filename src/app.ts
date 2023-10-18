@@ -3,6 +3,7 @@ import * as mqttComms from './mqtt/mqttComms';
 import configuration from './services/configuration';
 import dataCache, { DataEntry } from './services/dataCache';
 import { IOMGDeviceBase } from './mqtt/omg_devices/device';
+import { messageForwardingService } from './services/messageForwardingService';
 
 const log = configuration.log.extend('app');
 
@@ -32,9 +33,12 @@ function processTopic(topic: string, message: Buffer): void {
       const dataEntry = new DataEntry(topic, device);
       log(`[${topic}] => IOMGDevice: ${device.model}\t${device.id}`);
 
-      dataCache.add(topic, dataEntry);
+      if (dataCache.add(topic, dataEntry)) {
+        messageForwardingService.throttleMessage(dataEntry.get_unique_id(), dataEntry);
+      }
     } else {
       log(`Unknown Message Type! [${topic}] => ${jsonConfig}`);
+      messageForwardingService.throttleMessage(topic, {  topic, message: jsonConfig });
     }
   } catch (e) {
     log(`Failed to parse [${topic}] => ${jsonConfig}`);
@@ -47,9 +51,8 @@ function processTopic(topic: string, message: Buffer): void {
  */
 async function subscribe(): Promise<void> {
   if (mqttComms.isConnected()) {
-    const topic = configuration.mqttSrcTopic + '/#';
-    log('Subscribing to ' + topic);
-    await mqttComms.subscribe(topic, processTopic);
+    log('Subscribing to ' + configuration.mqttSrcTopic);
+    await mqttComms.subscribe(configuration.mqttSrcTopic, processTopic);
   }
 }
 

@@ -35,6 +35,17 @@ export function hasWildcards(topic: string): boolean {
   return topic.includes('+') || topic.includes('#');
 }
 
+function _nextWildcard(input: string, start_index: number = 0): number {
+  const plus = input.indexOf('+', start_index);
+  const hash = input.indexOf('#', start_index);
+  if (plus !== -1 && hash !== -1) {
+    return Math.min(plus, hash);
+  } else if (plus != -1) {
+    return plus;
+  }
+  return hash;
+}
+
 /**
  * Forwards the topic
  * @param src_topic - Topic to forward
@@ -43,10 +54,20 @@ export function hasWildcards(topic: string): boolean {
 export function forwardTopic(src_topic: string): string {
   const matches = SRC_TOPIC_REGEX.exec(src_topic);
 
+  // Dest topic must have same number of wildcards as the src_topic
   let result = '';
+  const dest_topic = configuration.mqttDestTopic;
   if (matches !== null) {
-    for (const match of matches) {
-      result = match;
+    let match_index = 1;
+    let prev_plus = 0;
+    let next_plus =  _nextWildcard(dest_topic);
+    while (matches[match_index] !== undefined && matches[match_index] !== '0' && next_plus >= 0) {
+      result += dest_topic.substring(prev_plus, next_plus);
+      result += matches[match_index];
+
+      prev_plus = next_plus + 1;
+      next_plus = _nextWildcard(dest_topic, prev_plus);
+      match_index++;
     }
   }
 

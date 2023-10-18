@@ -197,8 +197,10 @@ class DataCache {
    * Adds a newly received data entry.
    * @param topic - MQTT topic for the data entry
    * @param dataEntry - Newly received data entry to add to cache.
+   * @returns - True if the data was added to cache.
    */
-  public add(topic: string, dataEntry: DataEntry): void {
+  public add(topic: string, dataEntry: DataEntry): boolean {
+    let result = false;
     // Get the cached data
     const dataArray = this.get(dataEntry);
 
@@ -210,8 +212,11 @@ class DataCache {
 
       // Save the new data
       dataArray.push(dataEntry);
-      log(`Cache Size: ${dataArray.length}`);
+      result = true;
+      //log(`Cache Size: ${dataArray.length}`);
     }
+
+    return result;
   }
 }
 
