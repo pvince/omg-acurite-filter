@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-magic-numbers */
-import { IOMGDeviceBase, KnownType } from './device';
+import {IOMGDeviceBase, KnownType} from './device';
 
 /**
  * Acurite data channels
@@ -134,7 +134,11 @@ export const AcuriteTypes = [ KnownType.Acurite5n1, KnownType.AcuriteTower, Know
  * @returns - A unique ID for an Acurite device.
  */
 export function getUniqueAcuriteID(acuriteDevice: AcuriteDevice): string {
-  return `${acuriteDevice.channel}:${acuriteDevice.model}:${acuriteDevice.id}`;
+  let device_id = `${acuriteDevice.channel}:${acuriteDevice.model}:${acuriteDevice.id}`;
+  if (acuriteDevice.model === KnownType.Acurite5n1) {
+    device_id += `:${acuriteDevice.message_type}`;
+  }
+  return device_id;
 }
 
 /**
