@@ -35,12 +35,18 @@ export function hasWildcards(topic: string): boolean {
   return topic.includes('+') || topic.includes('#');
 }
 
+/**
+ * Find the next MQTT wildcard character in the input string.
+ * @param input - Input string, probably an MQTT topic
+ * @param start_index - Index to start the search at.
+ * @returns - Returns the index of the next wildcard character, or -1 if no wildcard is f ound.
+ */
 function _nextWildcard(input: string, start_index: number = 0): number {
   const plus = input.indexOf('+', start_index);
   const hash = input.indexOf('#', start_index);
   if (plus !== -1 && hash !== -1) {
     return Math.min(plus, hash);
-  } else if (plus != -1) {
+  } else if (plus !== -1) {
     return plus;
   }
   return hash;
