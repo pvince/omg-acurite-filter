@@ -18,6 +18,22 @@
 * Every Y seconds, send the 'latest' valid data reading 
   * Only send _new_ readings though, if we already sent it, flag it as such.
 
+# Enhancement ideas
+* Monitor memory usage. If it goes beyond X, auto-restart the service
+* Delete stopped jobs? After running most of the day we are already up to ~160 jobs.
+* ProIn sensors use numeric channels (rather than A, B, C)
+* Save stats:
+  * Invalid Readings Stats
+    * Prev reading - Invalid Reading
+    * Date//Time of bad reading
+    * Age out individual readings?
+    * Total # per device per receiver
+  * Total Messages received
+  * Total Messages forwarded
+* REST API?
+  * Stats?
+  * Job count
+
 # Other validation ideas
 * Many times we receive multiple copies of the same message, each from a different receiver.
   * The messages arrive nearly simultaneously. 
