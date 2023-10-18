@@ -5,6 +5,11 @@ import { MS_IN_MINUTE } from '../constants';
 const UNSET = '<unset>';
 const log = Debug('omg-acurite-filter');
 
+/**
+ * Ensure that the MQTT topic ends in '/#'. Gracefully handles if an 'undefined' value is passed in.
+ * @param topic - Topic to validate
+ * @returns - The topic, ending in '/#' or undefined if undefined was provided as input.
+ */
 function _forceEndingHash(topic: string | undefined): string | undefined {
   let result = topic;
   if (topic !== undefined) {
