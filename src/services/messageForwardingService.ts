@@ -2,7 +2,6 @@ import { AsyncTask, JobStatus, SimpleIntervalJob } from 'toad-scheduler';
 import { IMQTTMessage } from '../mqtt/IMQTTMessage';
 import configuration from './configuration';
 import { getScheduler } from './jobScheduler';
-import dataCache from './dataCache';
 import { forwardTopic } from '../mqtt/mqtt.util';
 import { publish } from '../mqtt/mqttComms';
 
@@ -54,10 +53,19 @@ class MessageForwardingService {
    * @protected
    */
   protected async forwardThrottledMessage(device_id: string): Promise<void> {
-    const dataEntryArray = dataCache.getByID(device_id);
+    try {
+      const mqtt_message = this.messages.get(device_id);
+      if (!mqtt_message) {
+        log('Finished reporting for [%s], stopping job',  device_id);
+        this.jobStore.get(device_id)?.stop();
+      } else {
+        await this.forwardMessage(mqtt_message);
 
-    if (dataEntryArray.length > 0) {
-      await this.forwardMessage(dataEntryArray[dataEntryArray.length - 1]);
+        // Now, delete the message we just sent.
+        this.messages.delete(device_id);
+      }
+    } catch (err) {
+      log('Encountered an error publishing for %s: %s', device_id, err);
     }
   }
 

@@ -38,7 +38,7 @@ function processTopic(topic: string, message: Buffer): void {
       }
     } else {
       log(`Unknown Message Type! [${topic}] => ${jsonConfig}`);
-      messageForwardingService.throttleMessage(topic, {  topic, message: jsonConfig });
+      messageForwardingService.throttleMessage(topic, { topic, message: jsonConfig });
     }
   } catch (e) {
     log(`Failed to parse [${topic}] => ${jsonConfig}`);
