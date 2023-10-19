@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-magic-numbers */
-import {IOMGDeviceBase, KnownType} from './device';
+import { IOMGDeviceBase, KnownType } from './device';
 
 /**
  * Acurite data channels
@@ -27,6 +27,14 @@ export enum AcuriteWaterDetected {
 }
 
 /**
+ * Types of Acurite Pro In probes
+ */
+export enum AcuriteProInSubtype {
+  none,
+  water
+}
+
+/**
  * Common acurite device properties
  */
 export interface IAcuriteDeviceBase extends IOMGDeviceBase {
@@ -34,10 +42,6 @@ export interface IAcuriteDeviceBase extends IOMGDeviceBase {
    * Is the battery Ok?
    */
   battery_ok: AcuriteBatteryOk;
-  /**
-   * What channel is the acurite device on?
-   */
-  channel: AcuriteChannel;
 }
 
 /**
@@ -62,6 +66,10 @@ export interface IAcuriteTower extends IAcuriteTempHumidityBase {
    * Set the model to 'Acurite-Tower'
    */
   model: KnownType.AcuriteTower;
+  /**
+   * What channel is the acurite device on?
+   */
+  channel: AcuriteChannel;
 }
 
 /**
@@ -72,6 +80,12 @@ export interface IAcuriteProIn extends IAcuriteTempHumidityBase {
    * Acurite-00276rm
    */
   model: KnownType.AcuriteProIn;
+
+  /**
+   * What type of ProIn probe is connected?
+   */
+  subtype: AcuriteProInSubtype;
+
   /**
    * Is water detected?
    */
@@ -98,6 +112,10 @@ export interface IAcurite5n1_WindAndRain extends IAcuriteDeviceBase {
    * Wind & Rain data
    */
   message_type: Acurite5n1MessageType.WindAndRain;
+  /**
+   * What channel is the acurite device on?
+   */
+  channel: AcuriteChannel;
 }
 
 /**
@@ -112,6 +130,10 @@ export interface IAcurite5n1_WindSpeedAndTemp extends IAcuriteTempHumidityBase {
    * Reporting wind speed and temperature data.
    */
   message_type: Acurite5n1MessageType.SpeedAndTemp;
+  /**
+   * What channel is the acurite device on?
+   */
+  channel: AcuriteChannel;
 
 }
 
@@ -134,9 +156,15 @@ export const AcuriteTypes = [ KnownType.Acurite5n1, KnownType.AcuriteTower, Know
  * @returns - A unique ID for an Acurite device.
  */
 export function getUniqueAcuriteID(acuriteDevice: AcuriteDevice): string {
-  let device_id = `${acuriteDevice.channel}:${acuriteDevice.model}:${acuriteDevice.id}`;
+  let device_id = `${acuriteDevice.model}:${acuriteDevice.id}`;
   if (acuriteDevice.model === KnownType.Acurite5n1) {
     device_id += `:${acuriteDevice.message_type}`;
+  }
+  if (acuriteDevice.model === KnownType.AcuriteTower || acuriteDevice.model === KnownType.Acurite5n1) {
+    device_id = `${acuriteDevice.channel}:${device_id}`;
+  }
+  if (acuriteDevice.model === KnownType.AcuriteProIn) {
+    device_id = `${acuriteDevice.subtype}:${device_id}`;
   }
   return device_id;
 }
