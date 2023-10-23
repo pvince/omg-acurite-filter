@@ -164,6 +164,10 @@ export interface IAcuriteLightning extends IAcuriteTempHumidityBase {
    */
   model: KnownType.AcuriteLightning;
   /**
+   * What channel is the acurite device on?
+   */
+  channel: AcuriteChannel;
+  /**
    * Strike count
    */
   strike_count: number;

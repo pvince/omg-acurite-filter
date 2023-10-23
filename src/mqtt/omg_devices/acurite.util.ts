@@ -41,7 +41,9 @@ export function getUniqueAcuriteID(acuriteDevice: AcuriteDevice): string {
     if (acuriteDevice.model === KnownType.Acurite5n1) {
         device_id += `:${acuriteDevice.message_type}`;
     }
-    if (acuriteDevice.model === KnownType.AcuriteTower || acuriteDevice.model === KnownType.Acurite5n1) {
+    if (acuriteDevice.model === KnownType.AcuriteTower ||
+        acuriteDevice.model === KnownType.Acurite5n1 ||
+        acuriteDevice.model === KnownType.AcuriteLightning) {
         device_id = `${acuriteDevice.channel}:${device_id}`;
     }
     if (acuriteDevice.model === KnownType.AcuriteProIn) {
