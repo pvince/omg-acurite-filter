@@ -1,0 +1,12 @@
+{
+  "model": "Acurite-Tower",
+  "id": 10745,
+  "channel": "A",
+  "battery_ok": 1,
+  "temperature_C": 19.4,
+  "humidity": 52,
+  "mic": "CHECKSUM",
+  "protocol": "Acurite 592TXR Temp/Humidity, 592TX Temp, 5n1 Weather Station, 6045 Lightning, 899 Rain, 3N1, Atlas",
+  "rssi": -72,
+  "duration": 125996
+}

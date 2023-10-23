@@ -4,7 +4,8 @@
 export enum KnownType {
   AcuriteTower = 'Acurite-Tower',
   Acurite5n1 = 'Acurite-5n1',
-  AcuriteProIn = 'Acurite-00276rm'
+  AcuriteProIn = 'Acurite-00276rm',
+  AcuriteLightning = 'Acurite-6045M'
 }
 
 /**
