@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions,@typescript-eslint/no-magic-numbers */
 import { describe, it } from 'mocha';
-import { AcuriteBatteryOk, AcuriteChannel, IAcuriteTower } from '../mqtt/omg_devices/acurite';
+import { AcuriteBatteryOk, AcuriteChannel, IAcuriteTower } from '../mqtt/omg_devices/acurite.types';
 import { KnownType } from '../mqtt/omg_devices/device';
 import { DataEntry, is_data_valid } from './dataCache';
 import { expect } from 'chai';

@@ -1,6 +1,7 @@
 import { IOMGDeviceBase } from '../mqtt/omg_devices/device';
 import configuration from './configuration';
-import { AcuriteDevice, AcuriteTypes, getAcuriteHumidity, getAcuriteTemperature, getUniqueAcuriteID } from '../mqtt/omg_devices/acurite';
+import { AcuriteDevice, AcuriteTypes } from '../mqtt/omg_devices/acurite.types';
+import {  getAcuriteHumidity, getAcuriteTemperature, getUniqueAcuriteID } from '../mqtt/omg_devices/acurite.util';
 import { IMQTTMessage } from '../mqtt/IMQTTMessage';
 
 const log =  configuration.log.extend('dataCache');
