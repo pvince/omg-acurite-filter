@@ -5,12 +5,14 @@ import { getAcuriteHumidity, getAcuriteTemperature, getUniqueAcuriteID } from '.
 import { IMQTTMessage } from '../mqtt/IMQTTMessage';
 import { ValidateTemperature } from './validators/validateTemperature';
 import { ValidateHumidity } from './validators/validateHumidity';
+import { ValidateRain } from './validators/validateRain';
 
 const log =  configuration.log.extend('dataCache');
 
 const validators = [
   new ValidateTemperature(),
-  new ValidateHumidity()
+  new ValidateHumidity(),
+  new ValidateRain()
 ];
 
 

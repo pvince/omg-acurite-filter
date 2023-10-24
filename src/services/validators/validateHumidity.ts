@@ -29,7 +29,6 @@ function is_humidity_valid(prev_data_array: DataEntry[], new_entry: DataEntry): 
  * Humidity Validator
  */
 export class ValidateHumidity implements Validator {
-
   /**
    * Validates a new data entry value. Can use previous data entries to perform the validation.
    * @param prev_data_array - Previously received set of data values
