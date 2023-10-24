@@ -7,12 +7,27 @@ import { getAcuriteHumidity, getAcuriteTemperature, getUniqueAcuriteID } from '.
  * Individual data entry.
  */
 export class DataEntry implements IMQTTMessage {
+  /**
+   * The raw MQTT topic from which this message was received
+   */
   public readonly topic: string;
 
-  public readonly message: string;
+  /**
+   * The raw string based MQTT message.
+   * @returns - The raw, string based MQTT message
+   */
+  public get message(): string {
+    return JSON.stringify(this.data);
+  }
 
+  /**
+   * Data object for a received Open MQTT Gateway message.
+   */
   public readonly data: IOMGDeviceBase;
 
+  /**
+   * Timestamp for when this data was received.
+   */
   public readonly timestamp: Date;
 
   /**
@@ -23,7 +38,6 @@ export class DataEntry implements IMQTTMessage {
   public constructor(topic: string, data: IOMGDeviceBase) {
     this.topic = topic;
     this.data = data;
-    this.message = JSON.stringify(data);
     this.timestamp = new Date();
   }
 
