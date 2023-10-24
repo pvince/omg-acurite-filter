@@ -26,4 +26,3 @@ export interface IOMGDeviceBase {
    */
   rssi: number;
 }
-

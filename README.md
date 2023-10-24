@@ -21,7 +21,6 @@
 # Enhancement ideas
 * Monitor memory usage. If it goes beyond X, auto-restart the service
 * Delete stopped jobs? After running most of the day we are already up to ~160 jobs.
-* ProIn sensors use numeric channels (rather than A, B, C)
 * Save stats:
   * Invalid Readings Stats
     * Prev reading - Invalid Reading
@@ -34,6 +33,7 @@
   * Stats?
   * Job count
 * RSSI signal, apply a 'max' logic to received values.
+* Filter other types of sensor values.
 * Add Acurite-6045M to 'Known Types':
   ```json
   {

@@ -6,8 +6,8 @@ import { forwardTopic } from './mqtt.util';
 describe('mqtt.util', () => {
   describe('forwardTopic', () => {
     it('should create forwarded topic', () => {
-      const src_topic = '433_direct/OMG_lilygo_rtl_433_ESP/RTL_433toMQTT/Acurite-Tower/A/8623';
-      const expected_result = '433_direct/forwarded/OMG_lilygo_rtl_433_ESP/RTL_433toMQTT/Acurite-Tower/A/8623';
+      const src_topic = '433_direct/raw/OMG_lilygo_rtl_433_ESP/RTL_433toMQTT/Acurite-Tower/A/8623';
+      const expected_result = '433_direct/OMG_lilygo_rtl_433_ESP/RTL_433toMQTT/Acurite-Tower/A/8623';
       const result = forwardTopic(src_topic);
       expect(result).to.eq(expected_result);
     });
