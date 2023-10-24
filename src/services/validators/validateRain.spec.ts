@@ -2,9 +2,9 @@
 import { describe, it } from 'mocha';
 import { Acurite5n1MessageType, AcuriteChannel, IAcurite5n1_WindAndRain } from '../../mqtt/omg_devices/acurite.types';
 import { KnownType } from '../../mqtt/omg_devices/device';
-import { DataEntry } from '../dataCache';
 import { ValidateRain } from './validateRain';
 import { expect } from 'chai';
+import { DataEntry } from '../dataEntries/dataEntry';
 
 /**
  * Get a typical Acurite 5n1 rain  reading.

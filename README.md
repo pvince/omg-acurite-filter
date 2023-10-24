@@ -33,27 +33,7 @@
   * Stats?
   * Job count
 * RSSI signal, apply a 'max' logic to received values.
-* Filter other types of sensor values.
-* Add Acurite-6045M to 'Known Types':
-  ```json
-  {
-    "model": "Acurite-6045M",
-    "id": 164,
-    "channel": "A",
-    "battery_ok": 1,
-    "temperature_C": 11.77778,
-    "humidity": 42,
-    "strike_count": 13,
-    "storm_dist": 0,
-    "active": 0,
-    "rfi": 0,
-    "exception": 0,
-    "raw_msg": "c0a46faa0f5c06c0ae",
-    "protocol": "Acurite 592TXR Temp/Humidity, 592TX Temp, 5n1 Weather Station, 6045 Lightning, 899 Rain, 3N1, Atlas",
-    "rssi": -64,
-    "duration": 154997
-  }
-  ```
+
 
 # Other validation ideas
 * Many times we receive multiple copies of the same message, each from a different receiver.

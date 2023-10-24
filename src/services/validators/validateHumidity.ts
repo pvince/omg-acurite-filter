@@ -1,9 +1,9 @@
 import { Validator } from './validator';
-import { DataEntry } from '../dataCache';
 import { IOMGDeviceBase, KnownType } from '../../mqtt/omg_devices/device';
 import { Acurite5n1MessageType, IAcurite5n1 } from '../../mqtt/omg_devices/acurite.types';
 import { is_range_valid_generic } from './validator.util';
 import configuration from '../configuration';
+import { DataEntry } from '../dataEntries/dataEntry';
 
 const TypesWithHumidity = new Set<KnownType>([
   KnownType.Acurite5n1,

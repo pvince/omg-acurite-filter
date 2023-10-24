@@ -1,5 +1,6 @@
 import { IOMGDeviceBase } from '../../mqtt/omg_devices/device';
-import { DataEntry } from '../dataCache';
+
+import { DataEntry } from '../dataEntries/dataEntry';
 
 /**
  * Abstract base Validator class.

@@ -1,9 +1,10 @@
 
 import * as mqttComms from './mqtt/mqttComms';
 import configuration from './services/configuration';
-import dataCache, { DataEntry } from './services/dataCache';
+import dataCache from './services/dataCache';
 import { IOMGDeviceBase } from './mqtt/omg_devices/device';
 import { messageForwardingService } from './services/messageForwardingService';
+import { DataEntry } from './services/dataEntries/dataEntry';
 
 const log = configuration.log.extend('app');
 

@@ -1,5 +1,5 @@
-import { DataEntry } from '../dataCache';
 import configuration from '../configuration';
+import { DataEntry } from '../dataEntries/dataEntry';
 
 const log = configuration.log.extend('validator');
 

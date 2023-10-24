@@ -2,9 +2,10 @@
 import { describe, it } from 'mocha';
 import { AcuriteBatteryOk, AcuriteChannel, IAcuriteTower } from '../mqtt/omg_devices/acurite.types';
 import { KnownType } from '../mqtt/omg_devices/device';
-import { DataEntry, is_data_valid } from './dataCache';
+import { is_data_valid } from './dataCache';
 import { expect } from 'chai';
 import configuration from './configuration';
+import { DataEntry } from './dataEntries/dataEntry';
 
 /**
  * Gets a default constructed tower object.

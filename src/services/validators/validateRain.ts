@@ -1,8 +1,8 @@
 import { IOMGDeviceBase, KnownType } from '../../mqtt/omg_devices/device';
 import { Validator } from './validator';
-import { DataEntry } from '../dataCache';
 import { is_range_valid_generic } from './validator.util';
 import { Acurite5n1MessageType, IAcurite5n1 } from '../../mqtt/omg_devices/acurite.types';
+import { DataEntry } from '../dataEntries/dataEntry';
 
 
 const TypesToValidate = new Set<KnownType>([
