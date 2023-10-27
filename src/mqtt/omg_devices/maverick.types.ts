@@ -1,4 +1,4 @@
-import {IOMGDeviceBase, KnownType} from './device';
+import { IOMGDeviceBase, KnownType } from './device';
 
 /**
  * Maverick ET73 BBQ Temperature Probes.
