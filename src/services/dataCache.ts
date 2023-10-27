@@ -1,15 +1,17 @@
 import configuration from './configuration';
-import { ValidateTemperature } from './validators/validateTemperature';
+import { ValidateAcuriteTemp } from './validators/validateAcuriteTemp';
 import { ValidateHumidity } from './validators/validateHumidity';
 import { ValidateRain } from './validators/validateRain';
 import { DataEntry } from './dataEntries/dataEntry';
+import { ValidateMaverickTemp } from './validators/validateMaverickTemp';
 
 const log =  configuration.log.extend('dataCache');
 
 const validators = [
-  new ValidateTemperature(),
+  new ValidateAcuriteTemp(),
   new ValidateHumidity(),
-  new ValidateRain()
+  new ValidateRain(),
+  new ValidateMaverickTemp()
 ];
 
 

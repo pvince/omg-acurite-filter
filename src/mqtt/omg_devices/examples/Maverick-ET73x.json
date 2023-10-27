@@ -1,0 +1,10 @@
+{
+  "model": "Maverick-ET73x",
+  "id": 1681,
+  "status": "default",
+  "temperature_1_C": 67,
+  "temperature_2_C": 169,
+  "protocol": "Maverick ET-732/733 BBQ Sensor",
+  "rssi": -73,
+  "duration": 482996
+}

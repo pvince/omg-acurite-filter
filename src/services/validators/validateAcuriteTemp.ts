@@ -1,9 +1,10 @@
-import { IOMGDeviceBase, KnownType } from '../../mqtt/omg_devices/device';
+import { KnownType } from '../../mqtt/omg_devices/device';
 import { Validator } from './validator';
 import { Acurite5n1MessageType, IAcurite5n1 } from '../../mqtt/omg_devices/acurite.types';
 import { is_range_valid_generic } from './validator.util';
 import configuration from '../configuration';
 import { DataEntry } from '../dataEntries/dataEntry';
+import { OMGDevice } from '../../mqtt/omg_devices/device.types';
 
 const TypesWithTemperature = new Set<KnownType>([
   KnownType.Acurite5n1,
@@ -28,7 +29,7 @@ function is_temperature_valid(prev_data_array: DataEntry[], new_entry: DataEntry
 /**
  * Validates devices w/ temperature values.
  */
-export class ValidateTemperature implements Validator {
+export class ValidateAcuriteTemp implements Validator {
   /**
    * Validates a new data entry value. Can use previous data entries to perform the validation.
    * @param prev_data_array - Previously received set of data values
@@ -44,7 +45,7 @@ export class ValidateTemperature implements Validator {
    * @param device - Raw device info.
    * @returns - True if this validator will work with this device.
    */
-  public canValidate(device: IOMGDeviceBase): boolean {
+  public canValidate(device: OMGDevice): boolean {
     let result = TypesWithTemperature.has(device.model);
     if (result && device.model === KnownType.Acurite5n1 ) {
       const fiveInOne = device as IAcurite5n1;

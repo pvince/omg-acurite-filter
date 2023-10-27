@@ -2,9 +2,9 @@
 import * as mqttComms from './mqtt/mqttComms';
 import configuration from './services/configuration';
 import dataCache from './services/dataCache';
-import { IOMGDeviceBase } from './mqtt/omg_devices/device';
 import { messageForwardingService } from './services/messageForwardingService';
 import { DataEntry } from './services/dataEntries/dataEntry';
+import { OMGDevice } from './mqtt/omg_devices/device.types';
 
 const log = configuration.log.extend('app');
 
@@ -30,7 +30,10 @@ function processTopic(topic: string, message: Buffer): void {
     const messageObj = JSON.parse(jsonConfig);
 
     if (Object.hasOwn(messageObj as object, 'id')) {
-      const device = messageObj as  IOMGDeviceBase;
+      // Assume it is a known, OMGDevice.
+      // We could clamp this down to only KnownTypes with:
+      //  Object.values(KnownTypes).includes(messageObj.model)
+      const device = messageObj as  OMGDevice;
       const dataEntry = new DataEntry(topic, device);
       log(`[${topic}] => IOMGDevice: ${device.model}\t${device.id}`);
 

@@ -1,7 +1,7 @@
 import { IMQTTMessage } from '../../mqtt/IMQTTMessage';
-import { IOMGDeviceBase } from '../../mqtt/omg_devices/device';
 import { AcuriteDevice, AcuriteTypes } from '../../mqtt/omg_devices/acurite.types';
 import { getAcuriteHumidity, getAcuriteTemperature, getUniqueAcuriteID } from '../../mqtt/omg_devices/acurite.util';
+import { OMGDevice } from '../../mqtt/omg_devices/device.types';
 
 /**
  * Individual data entry.
@@ -23,7 +23,7 @@ export class DataEntry implements IMQTTMessage {
   /**
    * Data object for a received Open MQTT Gateway message.
    */
-  public readonly data: IOMGDeviceBase;
+  public readonly data: OMGDevice;
 
   /**
    * Timestamp for when this data was received.
@@ -35,7 +35,7 @@ export class DataEntry implements IMQTTMessage {
    * @param topic - MQTT Topic
    * @param data - MQTT message data
    */
-  public constructor(topic: string, data: IOMGDeviceBase) {
+  public constructor(topic: string, data: OMGDevice) {
     this.topic = topic;
     this.data = data;
     this.timestamp = new Date();

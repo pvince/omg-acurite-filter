@@ -1,6 +1,5 @@
-import { IOMGDeviceBase } from '../../mqtt/omg_devices/device';
-
 import { DataEntry } from '../dataEntries/dataEntry';
+import { OMGDevice } from '../../mqtt/omg_devices/device.types';
 
 /**
  * Abstract base Validator class.
@@ -11,7 +10,7 @@ export abstract class Validator {
    * @param device - Raw device info.
    * @returns - True if this validator will work with this device.
    */
-  public abstract canValidate(device: IOMGDeviceBase): boolean;
+  public abstract canValidate(device: OMGDevice): boolean;
 
   /**
    * Validates a new data entry value. Can use previous data entries to perform the validation.
