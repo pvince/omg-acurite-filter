@@ -42,10 +42,14 @@ function processTopic(topic: string, message: Buffer): void {
       }
     } else {
       log(`Unknown Message Type! [${topic}] => ${jsonConfig}`);
-      messageForwardingService.throttleMessage(topic, { topic, message: jsonConfig });
+      messageForwardingService.throttleMessage(topic, { topic, message: jsonConfig, data: messageObj });
     }
   } catch (e) {
-    log(`Failed to parse [${topic}] => ${jsonConfig}`);
+    log(`Failed to parse [${topic}] => ${jsonConfig}]`);
+    messageForwardingService.forwardMessage({ topic, message: jsonConfig })
+      .catch((err) => {
+        log(`Failed to send unparsed message  [${topic}] => ${jsonConfig}]`);
+      });
   }
 
 }

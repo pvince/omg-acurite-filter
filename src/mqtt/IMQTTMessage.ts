@@ -10,4 +10,8 @@ export interface IMQTTMessage {
    * Message string.
    */
   message: string;
+  /**
+   * Optional, message that has been parsed into an object.
+   */
+  data?: object;
 }

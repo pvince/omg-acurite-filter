@@ -4,6 +4,7 @@ import configuration from './configuration';
 import { getScheduler } from './jobScheduler';
 import { forwardTopic } from '../mqtt/mqtt.util';
 import { publish } from '../mqtt/mqttComms';
+import { get_replacement_value, get_throttle_rate } from './forwarders';
 
 const log = configuration.log.extend('msg-fwd-svc');
 
@@ -34,7 +35,7 @@ class MessageForwardingService {
     this.messages.set(device_id, message);
 
     // Ensure the job is started for this device_id
-    this.startJob(device_id);
+    this.startJob(device_id, message);
   }
 
   /**
@@ -45,6 +46,26 @@ class MessageForwardingService {
     const forwardedTopic = forwardTopic(message.topic);
     log(`Publishing to ${forwardedTopic}`);
     await publish(forwardedTopic, message.message);
+  }
+
+  /**
+   * Sets the message onto our cache of messages to send.
+   * @param device_id - ID of the device that triggered the message
+   * @param message - MQTT Message to send
+   * @protected
+   */
+  protected setMessage(device_id: string, message: IMQTTMessage): void {
+    // Check to see if we already have a message queued, and if we do
+    // check to see if there is any special logic we should follow when
+    // saving a new message over the old one.
+    const prev_msg = this.messages.get(device_id);
+    let msg_to_save = message;
+    if (prev_msg) {
+      msg_to_save = get_replacement_value(prev_msg, message);
+    }
+
+    // Save the message
+    this.messages.set(device_id, msg_to_save);
   }
 
   /**
@@ -72,9 +93,10 @@ class MessageForwardingService {
   /**
    * Checks to see if the job exists, creates it if needed, then makes sure the job is started.
    * @param device_id - Device ID to use to lookup & create the job.
+   * @param newMsg - The new MQTT message being sent.
    * @protected
    */
-  protected startJob(device_id: string): void {
+  protected startJob(device_id: string, newMsg: IMQTTMessage): void {
     let curJob = this.jobStore.get(device_id);
     if (!curJob) {
       const taskFunc = (): Promise<void> => (this.forwardThrottledMessage(device_id));
@@ -86,7 +108,8 @@ class MessageForwardingService {
           log('Encountered an error while running forwardThrottledMessage(%s): %s', device_id, err);
         });
 
-      curJob = new SimpleIntervalJob({ minutes: 1, runImmediately: true }, task);
+      const throttleRate = get_throttle_rate(newMsg);
+      curJob = new SimpleIntervalJob({ milliseconds: throttleRate, runImmediately: true }, task);
       this.jobStore.set(device_id, curJob);
 
       log('Creating job for device: %s\tTotal Job Count: %d', device_id, this.jobStore.size);
