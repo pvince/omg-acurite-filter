@@ -1,18 +1,10 @@
 import configuration from './configuration';
-import { ValidateAcuriteTemp } from './validators/validateAcuriteTemp';
-import { ValidateHumidity } from './validators/validateHumidity';
-import { ValidateRain } from './validators/validateRain';
 import { DataEntry } from './dataEntries/dataEntry';
-import { ValidateMaverickTemp } from './validators/validateMaverickTemp';
+
+import { is_data_valid } from './validators';
 
 const log =  configuration.log.extend('dataCache');
 
-const validators = [
-  new ValidateAcuriteTemp(),
-  new ValidateHumidity(),
-  new ValidateRain(),
-  new ValidateMaverickTemp()
-];
 
 
 /**
@@ -43,24 +35,6 @@ function remove_stale_data(data_id: string, dataArray: DataEntry[]): void {
     log(`${data_id} aged out ${ageOutCount}/${startCount} entries!`);
   }
 
-}
-
-
-/**
- * Does the newly received data have valid values?
- * @param prev_data_array - Previously received set of data values
- * @param new_entry - Newly received data entry
- * @returns - True if the data is valid, false otherwise.
- */
-export function is_data_valid(prev_data_array: DataEntry[], new_entry: DataEntry): boolean {
-  let result = true;
-  for (let i = 0; i < validators.length && result; i++) {
-    const curValidator = validators[i];
-    if (curValidator.canValidate(new_entry.data)) {
-      result = curValidator.validate(prev_data_array, new_entry);
-    }
-  }
-  return result;
 }
 
 /**
