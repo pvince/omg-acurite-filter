@@ -46,6 +46,7 @@ export class DataEntry implements IMQTTMessage {
    * @returns - Returns a unique identifier for this data entry.
    */
   public get_unique_id(): string {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     if (AcuriteTypes.includes(this.data.model)) {
       return getUniqueAcuriteID(this.data as AcuriteDevice);
     }
@@ -57,6 +58,7 @@ export class DataEntry implements IMQTTMessage {
    * @returns - The temperature for this data entry, null if no temperature is associated with it.
    */
   public get_temperature(): number | null {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     if (AcuriteTypes.includes(this.data.model)) {
       return getAcuriteTemperature(this.data as AcuriteDevice);
     }
@@ -69,6 +71,7 @@ export class DataEntry implements IMQTTMessage {
    * @returns - The humidity for this data entry, null if no humidity is associated with it.
    */
   public get_humidity(): number | null {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     if (AcuriteTypes.includes(this.data.model)) {
       return getAcuriteHumidity(this.data as AcuriteDevice);
     }
