@@ -3,9 +3,8 @@ import { OMGDevice } from '../../mqtt/omg_devices/device.types';
 import { DataEntry } from '../dataEntries/dataEntry';
 import { KnownType } from '../../mqtt/omg_devices/device';
 import { is_range_valid_generic } from './validator.util';
-import configuration from '../configuration';
 
-const TEMP_RANGE = configuration.validTemperatureRange;
+const TEMP_RANGE = 15;
 
 /**
  * Get the food temperature
