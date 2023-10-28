@@ -5,6 +5,7 @@ import { KnownType } from '../../mqtt/omg_devices/device';
 import { is_range_valid_generic } from './validator.util';
 import configuration from '../configuration';
 
+const TEMP_RANGE = configuration.validTemperatureRange;
 
 /**
  * Get the food temperature
@@ -55,10 +56,10 @@ export class ValidateMaverickTemp implements Validator {
         let result = false;
         if (new_entry.data.model === KnownType.MaverickET73) {
             result = is_range_valid_generic(prev_data_array, new_entry, 'Food temperature',
-                get_temp_1, configuration.validTemperatureRange);
+                get_temp_1, TEMP_RANGE);
 
             result = result && is_range_valid_generic(prev_data_array, new_entry, 'Oven temperature',
-                get_temp_2, configuration.validTemperatureRange);
+                get_temp_2, TEMP_RANGE);
         }
 
         return result;
