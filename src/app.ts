@@ -33,7 +33,7 @@ function processTopic(topic: string, message: Buffer): void {
       // Assume it is a known, OMGDevice.
       // We could clamp this down to only KnownTypes with:
       //  Object.values(KnownTypes).includes(messageObj.model)
-      const device = messageObj as  OMGDevice;
+      const device = messageObj as OMGDevice;
       const dataEntry = new DataEntry(topic, device);
       log(`[${topic}] => IOMGDevice: ${device.model}\t${device.id}`);
 

@@ -1,13 +1,22 @@
 import { Forwarder, THROTTLE_RATE } from './forwarder';
 import { IMQTTMessage } from '../../mqtt/IMQTTMessage';
+import { ForwardMergeRSSI } from './forwardMergeRSSI';
 
+//todo: This method is flawed for several reasons
+//      1. Multiple forwarding rules might apply to a single message
+//      2. This only allows 1 forwarding rule to apply
+//      3. Any 'canHandle' that triggers makes it think that it can handle BOTH throttle & message replacement.
+// A better method would be where ALL of the forwarder 'replacement' instances are called, and we separate out
+// the throttle rate.
 const forwarderInstances = [
+  new ForwardMergeRSSI(),
   new Forwarder() // This should be the last forwarder, because it is the most generic.
 ];
 
 /**
  * At what rate will a message matching this forwarder be throttled? This value is the minimum amount of time
  * between forwarding messages that match this forwarder.
+ * @param mqttMsg - MQTT Message to check throttle rate for.
  * @returns - Returns throttle rate in milliseconds.
  */
 export function get_throttle_rate(mqttMsg: IMQTTMessage):  number {

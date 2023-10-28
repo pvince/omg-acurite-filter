@@ -32,7 +32,7 @@ class MessageForwardingService {
    */
   public throttleMessage(device_id: string, message: IMQTTMessage): void {
     // Update the message to send.
-    this.messages.set(device_id, message);
+    this.setMessage(device_id, message);
 
     // Ensure the job is started for this device_id
     this.startJob(device_id, message);
