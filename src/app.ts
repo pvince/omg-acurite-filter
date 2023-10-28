@@ -48,7 +48,7 @@ function processTopic(topic: string, message: Buffer): void {
     log(`Failed to parse [${topic}] => ${jsonConfig}]`);
     messageForwardingService.forwardMessage({ topic, message: jsonConfig })
       .catch((err) => {
-        log(`Failed to send unparsed message  [${topic}] => ${jsonConfig}]`);
+        log(`Failed to send unparsed message  [${topic}] => ${jsonConfig}] - ${err}`);
       });
   }
 
