@@ -77,8 +77,9 @@ class MessageForwardingService {
     try {
       const mqtt_message = this.messages.get(device_id);
       if (!mqtt_message) {
-        log('Finished reporting for [%s], stopping job',  device_id);
+        log('Finished reporting for [%s], stopping & deleting job',  device_id);
         this.jobStore.get(device_id)?.stop();
+        this.jobStore.delete(device_id);
       } else {
         await this.forwardMessage(mqtt_message);
 
