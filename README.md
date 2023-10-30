@@ -31,7 +31,6 @@
 * REST API?
   * Stats?
   * Job count
-* Fix the 'Forwarder' logic
 * Setup PM2 service on VM
 
 
@@ -60,3 +59,5 @@
           * 63.6, 66.1
           * 63.6, 66.1, 66.1
           * ~~63.6~~, 66.1, 66.1
+* Determine a stddev for received messages in the last X time frame. If newly received message is outside that stdev +
+  some error factor (smaller than the current one) then consider the message invalid.
