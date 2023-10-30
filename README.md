@@ -61,3 +61,4 @@
           * ~~63.6~~, 66.1, 66.1
 * Determine a stddev for received messages in the last X time frame. If newly received message is outside that stdev +
   some error factor (smaller than the current one) then consider the message invalid.
+
