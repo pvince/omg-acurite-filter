@@ -1,4 +1,5 @@
 import configuration from '../services/configuration';
+import { OMGDevice } from './omg_devices/device.types';
 
 const ESCAPE_LIST = ['\\', '/', '.', '*', '[', ']', '(', ')'];
 
@@ -79,4 +80,16 @@ export function forwardTopic(src_topic: string): string {
 
   return result;
 
+}
+
+/**
+ * Checks if the provided object is an OMGDevice
+ * @param obj - Object to check
+ * @returns - True if it is an OMGDevice
+ */
+export function isOMGDevice(obj: object | undefined): obj is OMGDevice {
+  return obj !== undefined && typeof obj === 'object' &&
+    'model' in obj &&
+    'id' in  obj &&
+    'rssi' in obj;
 }

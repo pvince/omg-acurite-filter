@@ -20,7 +20,6 @@
 
 # Enhancement ideas
 * Monitor memory usage. If it goes beyond X, auto-restart the service
-* Delete stopped jobs? After running most of the day we are already up to ~160 jobs.
 * Save stats:
   * Invalid Readings Stats
     * Prev reading - Invalid Reading

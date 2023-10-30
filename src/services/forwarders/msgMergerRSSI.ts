@@ -1,29 +1,19 @@
-import { Forwarder } from './forwarder';
+import { AbstractMsgMerger } from './msgMerger';
 import { IMQTTMessage } from '../../mqtt/IMQTTMessage';
 import configuration from '../configuration';
+import { isOMGDevice } from '../../mqtt/mqtt.util';
 
 const log = configuration.log.extend('forwarder:rssi');
-
-/**
- * Basic interface of an object that has RSSI.
- */
-interface IHasRSSI {
-  /**
-   * Signal strength number.
-   */
-  rssi: number;
-}
-
 /**
  * Ensure we are sending a consistent RSSI value.
  */
-export class ForwardMergeRSSI extends Forwarder {
+export class MsgMergerRSSI extends AbstractMsgMerger {
   /**
    * Can this forwarder handle his specific message?
    * @param mqttMsg - MQTT Message
    * @returns - True if this message can be handled by this forwarder
    */
-  public override canHandle(mqttMsg: IMQTTMessage): boolean {
+  public override canReplaceValue(mqttMsg: IMQTTMessage): boolean {
     let result = false;
     if (mqttMsg.data && Object.hasOwn(mqttMsg.data, 'rssi')) {
       result = true;
@@ -40,16 +30,12 @@ export class ForwardMergeRSSI extends Forwarder {
    */
   public override replaceValue(prevMsg: IMQTTMessage, newMsg: IMQTTMessage): IMQTTMessage {
     let result = newMsg;
-    if (prevMsg.data && Object.hasOwn(prevMsg.data, 'rssi') &&
-        newMsg.data && Object.hasOwn(newMsg.data, 'rssi')) {
-      const prevWithRSSI = prevMsg.data as IHasRSSI;
-      const newWithRSSI = newMsg.data as IHasRSSI;
-      const newRSSI = Math.max(prevWithRSSI.rssi, newWithRSSI.rssi);
+    if (isOMGDevice(prevMsg.data) && isOMGDevice(newMsg.data)) {
+      const newRSSI = Math.max(prevMsg.data.rssi, newMsg.data.rssi);
 
-      if (newRSSI !== newWithRSSI.rssi) {
-        log(`${newMsg.topic} normalized RSSI from ${newWithRSSI.rssi} to ${newRSSI}`);
+      if (newRSSI !== newMsg.data.rssi) {
+        log(`${newMsg.topic} normalized RSSI from ${newMsg.data.rssi} to ${newRSSI}`);
       }
-      // @ts-ignore
       newMsg.data.rssi = newRSSI;
       result = newMsg;
     }

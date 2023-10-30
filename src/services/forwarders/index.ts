@@ -1,16 +1,21 @@
-import { Forwarder, THROTTLE_RATE } from './forwarder';
 import { IMQTTMessage } from '../../mqtt/IMQTTMessage';
-import { ForwardMergeRSSI } from './forwardMergeRSSI';
+import { MsgMergerRSSI } from './msgMergerRSSI';
+import { ThrottlerMaverick } from './throttlerMaverick';
+import { DEFAULT_THROTTLE_RATE } from './throttler';
 
-//todo: This method is flawed for several reasons
-//      1. Multiple forwarding rules might apply to a single message
-//      2. This only allows 1 forwarding rule to apply
-//      3. Any 'canHandle' that triggers makes it think that it can handle BOTH throttle & message replacement.
-// A better method would be where ALL of the forwarder 'replacement' instances are called, and we separate out
-// the throttle rate.
-const forwarderInstances = [
-  new ForwardMergeRSSI(),
-  new Forwarder() // This should be the last forwarder, because it is the most generic.
+/**
+ * All the custom message forwarding mergers. All forwarders will be called in order here with the result
+ * of each merger being passed forward as the 'new message' to the next one.
+ */
+const mergerInstances = [
+  new MsgMergerRSSI()
+];
+
+/**
+ * All the custom message throttlers. First one that can handle the supplied message will be used.
+ */
+const throttlerInstances = [
+  new ThrottlerMaverick()
 ];
 
 /**
@@ -20,10 +25,10 @@ const forwarderInstances = [
  * @returns - Returns throttle rate in milliseconds.
  */
 export function get_throttle_rate(mqttMsg: IMQTTMessage):  number {
-  let result = THROTTLE_RATE;
-  for (const forwarder of forwarderInstances) {
-    if (forwarder.canHandle(mqttMsg)) {
-      result = forwarder.throttleRateInMs;
+  let result = DEFAULT_THROTTLE_RATE;
+  for (const throttler of throttlerInstances) {
+    if (throttler.hasCustomRate(mqttMsg)) {
+      result = throttler.getCustomRate(mqttMsg);
       break;
     }
   }
@@ -40,10 +45,10 @@ export function get_throttle_rate(mqttMsg: IMQTTMessage):  number {
 export function get_replacement_value(prevMsg: IMQTTMessage, newMsg: IMQTTMessage): IMQTTMessage {
   let result = newMsg;
 
-  for (const forwarder of forwarderInstances) {
-    if (forwarder.canHandle(newMsg)) {
-      result = forwarder.replaceValue(prevMsg, newMsg);
-      break;
+  // Run all the forwarders
+  for (const forwarder of mergerInstances) {
+    if (forwarder.canReplaceValue(newMsg)) {
+      result = forwarder.replaceValue(prevMsg, result);
     }
   }
 
