@@ -2,9 +2,10 @@ import { Validator } from './validator';
 import { OMGDevice } from '../../mqtt/omg_devices/device.types';
 import { DataEntry } from '../dataEntries/dataEntry';
 import { KnownType } from '../../mqtt/omg_devices/device';
-import { is_range_valid_generic } from './validator.util';
+import { IRangeOptions, is_range_valid_generic } from './validator.util';
 
 const TEMP_RANGE = 30;
+const MINIMUM_VALID = 0;
 
 /**
  * Get the food temperature
@@ -54,11 +55,13 @@ export class ValidateMaverickTemp implements Validator {
     public validate(prev_data_array: DataEntry[], new_entry: DataEntry): boolean {
         let result = false;
         if (new_entry.data.model === KnownType.MaverickET73) {
+            const validationOpts: Partial<IRangeOptions> = { minimumTemperature: MINIMUM_VALID };
+
             result = is_range_valid_generic(prev_data_array, new_entry, 'Food temperature',
-                get_temp_1, TEMP_RANGE);
+                get_temp_1, TEMP_RANGE, validationOpts);
 
             result = result && is_range_valid_generic(prev_data_array, new_entry, 'Oven temperature',
-                get_temp_2, TEMP_RANGE);
+                get_temp_2, TEMP_RANGE, validationOpts);
         }
 
         return result;

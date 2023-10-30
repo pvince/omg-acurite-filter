@@ -11,6 +11,11 @@ export interface IRangeOptions {
    * Should it only allow incrementing values? Eg: No values lower than the most recent value.
    */
   onlyIncrementing: boolean;
+
+  /**
+   * Minimum valid temperature
+   */
+  minimumTemperature: number;
 }
 
 /**
@@ -42,6 +47,12 @@ export function is_range_valid_generic(prev_data_array: DataEntry[], new_entry: 
     const valid_max = prev_value + valid_range;
 
     isValid = new_value >= valid_min && new_value <= valid_max;
+  }
+
+  if (isValid && new_value !== null) {
+    if (opts.minimumTemperature) {
+      isValid = new_value >= opts.minimumTemperature;
+    }
   }
 
   if (!isValid) {
