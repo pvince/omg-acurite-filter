@@ -4,7 +4,7 @@ import { DataEntry } from '../dataEntries/dataEntry';
 import { KnownType } from '../../mqtt/omg_devices/device';
 import { is_range_valid_generic } from './validator.util';
 
-const TEMP_RANGE = 15;
+const TEMP_RANGE = 30;
 
 /**
  * Get the food temperature
