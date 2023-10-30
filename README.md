@@ -32,7 +32,8 @@
 * REST API?
   * Stats?
   * Job count
-* RSSI signal, apply a 'max' logic to received values.
+* Fix the 'Forwarder' logic
+* Setup PM2 service on VM
 
 
 # Other validation ideas
