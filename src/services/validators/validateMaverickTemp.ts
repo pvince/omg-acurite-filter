@@ -15,6 +15,7 @@ const MINIMUM_VALID = 0;
 function get_temp_1(n: DataEntry | undefined): number | null  {
   let result: number | null = null;
   if (n?.data.model === KnownType.MaverickET73) {
+      n.data.temperature_1_C = Math.max(n.data.temperature_1_C, MINIMUM_VALID);
       result = n.data.temperature_1_C;
   }
   return result;
@@ -28,6 +29,7 @@ function get_temp_1(n: DataEntry | undefined): number | null  {
 function get_temp_2(n: DataEntry | undefined): number | null  {
     let result: number | null = null;
     if (n?.data.model === KnownType.MaverickET73) {
+        n.data.temperature_2_C = Math.max(n.data.temperature_2_C, MINIMUM_VALID);
         result = n.data.temperature_2_C;
     }
     return result;
