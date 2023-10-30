@@ -5,7 +5,7 @@ import { KnownType } from '../../mqtt/omg_devices/device';
 import { IRangeOptions, is_range_valid_generic } from './validator.util';
 
 const TEMP_RANGE = 30;
-const MINIMUM_VALID = 0;
+const MINIMUM_VALID = -17.7778;
 
 /**
  * Get the food temperature
