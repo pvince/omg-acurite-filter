@@ -3,12 +3,14 @@ import { ValidateHumidity } from './validateHumidity';
 import { ValidateRain } from './validateRain';
 import { ValidateMaverickTemp } from './validateMaverickTemp';
 import { DataEntry } from '../dataEntries/dataEntry';
+import { ValidateStrikeCount } from './validateStrikeCount';
 
 const validators = [
   new ValidateAcuriteTemp(),
   new ValidateHumidity(),
   new ValidateRain(),
-  new ValidateMaverickTemp()
+  new ValidateMaverickTemp(),
+  new ValidateStrikeCount()
 ];
 
 /**
