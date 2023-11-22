@@ -25,7 +25,20 @@ export function buildTopicRegex(topic: string): RegExp {
 }
 
 
-export const SRC_TOPIC_REGEX = buildTopicRegex(configuration.mqttSrcTopic);
+let _cached_src_topic = configuration.mqttSrcTopic;
+let _SRC_TOPIC_REGEX = buildTopicRegex(configuration.mqttSrcTopic);
+
+/**
+ * Returns the regex for the MQTT source topic.
+ * @returns - Returns the regex for the MQTT source topic.
+ */
+export function getSrcTopicRegex(): RegExp {
+  if (_cached_src_topic !== configuration.mqttSrcTopic) {
+    _SRC_TOPIC_REGEX = buildTopicRegex(configuration.mqttSrcTopic);
+    _cached_src_topic = configuration.mqttSrcTopic;
+  }
+  return _SRC_TOPIC_REGEX;
+}
 
 /**
  * Check if the specified topic includes wildcard characters.
@@ -59,7 +72,7 @@ function _nextWildcard(input: string, start_index: number = 0): number {
  * @returns - Forwarded topic
  */
 export function forwardTopic(src_topic: string): string {
-  const matches = SRC_TOPIC_REGEX.exec(src_topic);
+  const matches = getSrcTopicRegex().exec(src_topic);
 
   // Dest topic must have same number of wildcards as the src_topic
   let result = '';

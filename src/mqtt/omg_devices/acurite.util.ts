@@ -7,7 +7,9 @@ import { Acurite5n1MessageType, AcuriteDevice } from './acurite.types';
  * @returns - The temperature for the acurite device, or null if there is no temperature for this device.
  */
 export function getAcuriteTemperature(acuriteDevice: AcuriteDevice): number | null {
-    if (acuriteDevice.model === KnownType.AcuriteTower || acuriteDevice.model === KnownType.AcuriteProIn) {
+    if (acuriteDevice.model === KnownType.AcuriteTower ||
+        acuriteDevice.model === KnownType.AcuriteProIn ||
+        acuriteDevice.model === KnownType.AcuriteLightning ) {
         return acuriteDevice.temperature_C;
     } else if (acuriteDevice.model === KnownType.Acurite5n1 &&
         acuriteDevice.message_type === Acurite5n1MessageType.SpeedAndTemp) {
@@ -22,7 +24,9 @@ export function getAcuriteTemperature(acuriteDevice: AcuriteDevice): number | nu
  * @returns - The humidity for the acurite device, or null if there is no humidity for this device.
  */
 export function getAcuriteHumidity(acuriteDevice: AcuriteDevice): number | null {
-    if (acuriteDevice.model === KnownType.AcuriteTower || acuriteDevice.model === KnownType.AcuriteProIn) {
+    if (acuriteDevice.model === KnownType.AcuriteTower ||
+        acuriteDevice.model === KnownType.AcuriteProIn ||
+        acuriteDevice.model === KnownType.AcuriteLightning) {
         return acuriteDevice.humidity;
     } else if (acuriteDevice.model === KnownType.Acurite5n1 &&
         acuriteDevice.message_type === Acurite5n1MessageType.SpeedAndTemp) {

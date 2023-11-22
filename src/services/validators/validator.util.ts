@@ -40,6 +40,10 @@ export function is_range_valid_generic(prev_data_array: DataEntry[], new_entry: 
 
   let isValid = new_value === null || prev_value === null;
 
+  if (new_value === null) {
+    isValid = false;
+  }
+
   if (new_value !== null && prev_value !== null) {
     let valid_min = prev_value - valid_range;
     if (opts?.onlyIncrementing) {

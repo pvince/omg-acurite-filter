@@ -6,7 +6,7 @@ import {  IAcuriteLightning } from '../../mqtt/omg_devices/acurite.types';
 import { is_range_valid_generic } from './validator.util';
 
 // Picking some absurd value, at the moment I don't care if it suddenly shoots up.
-const VALID_RANGE = 20;
+export const VALID_RANGE = 20;
 
 /**
  * Strike Count

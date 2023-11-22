@@ -109,6 +109,9 @@ class MessageForwardingService {
           log('Encountered an error while running forwardThrottledMessage(%s): %s', device_id, err);
         });
 
+      // TODO: There is a bug here. The throttle rate cannot be changed once the job has been created.
+      //       So, if get_throttle_rate varies based on the current reported message, then the actual rate at which
+      //       it reports data doesn't get changed.
       const throttleRate = get_throttle_rate(newMsg);
       curJob = new SimpleIntervalJob({ milliseconds: throttleRate, runImmediately: true }, task);
       this.jobStore.set(device_id, curJob);
