@@ -5,6 +5,7 @@ import dataCache from './services/dataCache';
 import { messageForwardingService } from './services/messageForwardingService';
 import { DataEntry } from './services/dataEntries/dataEntry';
 import { OMGDevice } from './mqtt/omg_devices/device.types';
+import { dumpMessage } from './mqtt/dumper';
 
 const log = configuration.log.extend('app');
 
@@ -30,6 +31,10 @@ function processTopic(topic: string, message: Buffer): void {
     const messageObj = JSON.parse(jsonConfig);
 
     if (Object.hasOwn(messageObj as object, 'id')) {
+      if (configuration.DUMP_MQTT_MSGS) {
+        dumpMessage({ topic, message: jsonConfig });
+      }
+
       // Assume it is a known, OMGDevice.
       // We could clamp this down to only KnownTypes with:
       //  Object.values(KnownTypes).includes(messageObj.model)
@@ -68,6 +73,10 @@ async function subscribe(): Promise<void> {
  * Main startup function
  */
 async function startup(): Promise<void> {
+  if ( configuration.DUMP_MQTT_MSGS ) {
+    log(`Dumping all received MQTT messages to ${configuration.MQTT_MSG_LOG_FILE}...`);
+  }
+
   log('Starting MQTT client');
   await startMQTT();
 

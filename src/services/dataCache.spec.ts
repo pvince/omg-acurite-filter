@@ -2,10 +2,14 @@
 import { describe, it } from 'mocha';
 import { AcuriteBatteryOk, AcuriteChannel, IAcuriteTower } from '../mqtt/omg_devices/acurite.types';
 import { KnownType } from '../mqtt/omg_devices/device';
-import { expect } from 'chai';
+import { assert, expect } from 'chai';
 import configuration from './configuration';
 import { DataEntry } from './dataEntries/dataEntry';
 import { is_data_valid } from './validators';
+import * as fs from 'fs';
+import { DataCache } from './dataCache';
+import { IMQTTMessage } from '../mqtt/IMQTTMessage';
+import { OMGDevice } from '../mqtt/omg_devices/device.types';
 
 /**
  * Gets a default constructed tower object.
@@ -24,6 +28,43 @@ function get_acurite_tower(tower_opts: Partial<IAcuriteTower> = {}): IAcuriteTow
   };
 
   return { ...default_object, ...tower_opts };
+}
+
+
+let MQTT_MSG_CACHE: IMQTTMessage[] | null = null;
+
+/**
+ * Returns the recorded MQTT messages.
+ * @returns - Recorded MQTT messages
+ */
+export async function get_mqtt_msg_log(): Promise<IMQTTMessage[]> {
+  if (MQTT_MSG_CACHE === null) {
+    MQTT_MSG_CACHE = [];
+
+    try {
+      const fileContents = await fs.promises.readFile('testData/mqtt_msgs.log', { encoding: 'utf-8' });
+      const lines = fileContents.split('\n');
+
+      let i = 0;
+      for (const line of lines) {
+        i++;
+        try {
+          if (line.length > 0) {
+            const mqttMsg: IMQTTMessage = JSON.parse(line);
+            mqttMsg.data = JSON.parse(mqttMsg.message);
+            MQTT_MSG_CACHE.push(mqttMsg);
+          }
+        } catch (ex) {
+          assert.fail(`Failed to logged message for line ${i} - [${line}] - ${ex}`);
+        }
+
+      }
+    } catch (ex) {
+      assert.fail(`${ex}`);
+    }
+  }
+
+  return MQTT_MSG_CACHE;
 }
 
 /**
@@ -190,5 +231,20 @@ describe('is_data_valid', () => {
       const result = is_data_valid(data_array, new_data);
       expect(result).to.be.false;
     });
+  });
+});
+
+describe('DataCache', () => {
+  it('should have all valid messages', async () => {
+    const dataCache = new DataCache();
+    const msg_log = await get_mqtt_msg_log();
+    let i = 0;
+    for ( const msg of msg_log ) {
+      i++;
+      const dataEntry = new DataEntry(msg.topic, msg.data as OMGDevice);
+      const result = dataCache.add(msg.topic, dataEntry);
+
+      expect(result, `${i} - ${msg.topic} failed validation?`).to.be.true;
+    }
   });
 });

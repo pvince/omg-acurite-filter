@@ -40,7 +40,7 @@ function remove_stale_data(data_id: string, dataArray: DataEntry[]): void {
 /**
  * Cache of received data
  */
-class DataCache {
+export class DataCache {
   private readonly cache = new Map<string, DataEntry[]>();
 
   /**

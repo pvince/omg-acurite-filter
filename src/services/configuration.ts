@@ -104,6 +104,17 @@ class Configuration {
   }
 
   /**
+   * Should we dump MQTT messages to a log file?
+   */
+  public readonly DUMP_MQTT_MSGS = false;
+
+  /**
+   * If we are dumping MQTT messages, what should the file be named?
+   */
+
+  public readonly MQTT_MSG_LOG_FILE = 'testData/mqtt_msgs.log';
+
+  /**
    * Valid temperature range in degrees Celsius (considered valid if new value is +- by this setting)
    */
     // eslint-disable-next-line @typescript-eslint/no-magic-numbers

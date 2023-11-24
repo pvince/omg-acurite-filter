@@ -4,11 +4,6 @@ import { is_range_valid_generic } from './validator.util';
 import { Acurite5n1MessageType, IAcurite5n1 } from '../../mqtt/omg_devices/acurite.types';
 import { DataEntry } from '../dataEntries/dataEntry';
 
-
-const TypesToValidate = new Set<KnownType>([
-  KnownType.Acurite5n1
-]);
-
 // Picking some absurd value, at the moment I don't care if it suddenly shoots up.
 const VALID_RANGE = 99999;
 
@@ -45,6 +40,10 @@ export class ValidateRain implements Validator {
    * @returns - True if this validator will work with this device.
    */
   public canValidate(device: IOMGDeviceBase): boolean {
-    return TypesToValidate.has(device.model);
+    let result = false;
+    if (device.model === KnownType.Acurite5n1) {
+      result = (device as IAcurite5n1).message_type === Acurite5n1MessageType.WindAndRain;
+    }
+    return result;
   }
 }
