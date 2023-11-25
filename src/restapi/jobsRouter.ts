@@ -3,13 +3,30 @@ import { Job, JobStatus } from 'toad-scheduler';
 import { IMQTTMessage } from '../mqtt/IMQTTMessage';
 import { messageForwardingService } from '../services/messageForwardingService';
 
-
+/**
+ * Job interface
+ */
 interface IJob {
+  /**
+   * Job ID, aka device ID
+   */
   id: string;
+  /**
+   * Job status
+   */
   status: JobStatus;
+  /**
+   * If there is a queued message, this is it.
+   */
   queuedMessage: IMQTTMessage | null;
 }
 
+/**
+ * Builds an individual IJob from job data.
+ * @param device_id - Device ID
+ * @param job - Job from the message forwarding service
+ * @returns - New IJob based on active jobs.
+ */
 function buildJob(device_id: string, job: Job): IJob {
   return {
     id: device_id,
@@ -18,7 +35,10 @@ function buildJob(device_id: string, job: Job): IJob {
   };
 }
 
-
+/**
+ * Gathers active job data from the message forwarding service.
+ * @returns - List of IJobs we can send to the caller
+ */
 function gatherJobData(): IJob[] {
   const result: IJob[] = [];
   for (const [device_id, job] of messageForwardingService.jobEntries()) {
