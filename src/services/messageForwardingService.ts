@@ -8,6 +8,29 @@ import { get_replacement_value, get_throttle_rate } from './forwarders';
 
 const log = configuration.log.extend('msg-fwd-svc');
 
+/**
+ * Job statistics
+ */
+export interface IStatsJobs {
+  /**
+   * Active jobs
+   */
+  active: number;
+  /**
+   * Ended jobs
+   */
+  ended: number;
+  /**
+   * Total number of jobs ever started & run.
+   */
+  lifetime: number;
+}
+
+const jobStats: IStatsJobs = {
+  active: 0,
+  ended: 0,
+  lifetime: 0
+};
 
 /**
  * The role of this class is to throttle the torrent of MQTT data coming from multiple OMG Receivers.
@@ -57,8 +80,20 @@ class MessageForwardingService {
     return this.messages.get(device_id) ?? null;
   }
 
+  /**
+   * Return an object that can be iterated over to gather job data.
+   * @returns - Iterable job entries
+   */
   public jobEntries(): IterableIterator<[string, SimpleIntervalJob]> {
     return this.jobStore.entries();
+  }
+
+  /**
+   * Total count of active jobs
+   * @returns - Total count of active jobs
+   */
+  public getJobCount(): number {
+    return this.jobStore.size;
   }
 
   /**
@@ -93,6 +128,7 @@ class MessageForwardingService {
         log('Finished reporting for [%s], stopping & deleting job',  device_id);
         this.jobStore.get(device_id)?.stop();
         this.jobStore.delete(device_id);
+        jobStats.ended++;
       } else {
         await this.forwardMessage(mqtt_message);
 
@@ -132,6 +168,7 @@ class MessageForwardingService {
       log('Creating job for device: %s\tTotal Job Count: %d', device_id, this.jobStore.size);
 
       getScheduler().addSimpleIntervalJob(curJob);
+      jobStats.lifetime++;
     }
 
     if (curJob.getStatus() !== JobStatus.RUNNING) {
@@ -141,3 +178,12 @@ class MessageForwardingService {
 }
 
 export const messageForwardingService = new MessageForwardingService();
+
+/**
+ * Retrieve job stats
+ * @returns - Job stats
+ */
+export function getJobStats(): IStatsJobs {
+  jobStats.active = messageForwardingService.getJobCount();
+  return jobStats;
+}
