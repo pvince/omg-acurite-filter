@@ -49,6 +49,19 @@ class MessageForwardingService {
   }
 
   /**
+   * Returns a message that is queued for sending via the forwarding service.
+   * @param device_id - Device ID to check the queue for.
+   * @returns - Either a queued message or null if no message is queued.
+   */
+  public getMessage(device_id: string): IMQTTMessage  | null {
+    return this.messages.get(device_id) ?? null;
+  }
+
+  public jobEntries(): IterableIterator<[string, SimpleIntervalJob]> {
+    return this.jobStore.entries();
+  }
+
+  /**
    * Sets the message onto our cache of messages to send.
    * @param device_id - ID of the device that triggered the message
    * @param message - MQTT Message to send

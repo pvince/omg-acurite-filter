@@ -6,6 +6,7 @@ import { messageForwardingService } from './services/messageForwardingService';
 import { DataEntry } from './services/dataEntries/dataEntry';
 import { OMGDevice } from './mqtt/omg_devices/device.types';
 import { dumpMessage } from './mqtt/dumper';
+import { startWebService } from './services/webService';
 
 const log = configuration.log.extend('app');
 
@@ -82,6 +83,8 @@ async function startup(): Promise<void> {
 
   log('Subscribing...');
   await subscribe();
+
+  await startWebService();
 }
 
 startup()

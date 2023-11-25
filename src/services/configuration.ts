@@ -126,6 +126,12 @@ class Configuration {
     // eslint-disable-next-line @typescript-eslint/no-magic-numbers
   public readonly validHumidityRange = 10;
 
+  /**
+   * HTTP port to use for the REST API.
+   */
+    // eslint-disable-next-line @typescript-eslint/no-magic-numbers
+  public readonly httpPort = 2998;
+
 }
 
 const configuration = new Configuration();
