@@ -26,11 +26,8 @@
     * Date//Time of bad reading
     * Age out individual readings?
     * Total # per device per receiver
-  * Total Messages received
-  * Total Messages forwarded
 * REST API?
   * Stats?
-  * Job count
 * Setup PM2 service on VM
 
 
