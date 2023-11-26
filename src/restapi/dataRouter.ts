@@ -83,8 +83,27 @@ function handleDataEntry(req: Request, res: Response): void {
   }
 }
 
+/**
+ * Scans the data cache and runs the 'purge stale entries' routine on each data set. Then it deletes any entries that
+ * no longer have any cached data.
+ * @param req - Incoming request
+ * @param res - Outgoing response
+ */
+function handleCleanup(req: Request, res: Response): void {
+  const results = {
+    initialCount: dataCache.count,
+    deleted: dataCache.cleanup(),
+    finalCount: dataCache.count
+  };
+
+  res.json(results);
+  res.send();
+}
+
 const dataRouter = Router();
 
 dataRouter.get('/v1/data', handleData);
 dataRouter.get('/v1/data/:id', handleDataEntry);
+dataRouter.delete('/v1/data/cleanup', handleCleanup);
+
 export default dataRouter;

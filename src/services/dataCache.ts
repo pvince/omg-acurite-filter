@@ -2,7 +2,6 @@ import configuration from './configuration';
 import { DataEntry } from './dataEntries/dataEntry';
 
 import { is_data_valid } from './validators';
-import { cacheStats } from './statistics/passiveStatistics';
 
 const log =  configuration.log.extend('dataCache');
 
@@ -91,11 +90,40 @@ export class DataCache {
   }
 
   /**
+   * Cleans up stale values from the data cache. Removes stale values for the specified device_id. If the resulting
+   * device no longer has any cached values, it is removed as well.
+   * @returns - Count of devices deleted from cache.
+   */
+  public cleanup(): number {
+    let deleted = 0;
+
+    for (const [device_id, data_array] of this.cache.entries()) {
+      remove_stale_data(device_id, data_array);
+
+      if (data_array.length === 0) {
+        this.cache.delete(device_id);
+        deleted++;
+        log('Removing %s from cache since it no longer has any entries.', device_id);
+      }
+    }
+
+    return deleted;
+  }
+
+  /**
    * Retrieve an iterator for the data cache.
    * @returns - Iterator for the data held in cache.
    */
   public getEntries(): IterableIterator<[string, DataEntry[]]> {
     return this.cache.entries();
+  }
+
+  /**
+   * Returns the count of items in cache.
+   * @returns - Count of items in cache.
+   */
+  public get count(): number {
+    return this.cache.size;
   }
 
   /**
@@ -132,7 +160,6 @@ export class DataCache {
     if (dataArray === null && create_missing) {
       dataArray = [];
       this.cache.set(device_id, dataArray);
-      cacheStats.devices++;
     }
     return dataArray;
   }

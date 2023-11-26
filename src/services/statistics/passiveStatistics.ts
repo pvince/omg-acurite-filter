@@ -2,7 +2,7 @@
  * This file is for passively gathering statistic data. It does not actively reach out to any other services. This is
  * to prevent circular references between the statistics service & other services.
  */
-import { IStatsDataCache, IStatsJobs, IStatsMQTT, IStatsRates } from './statistics.types';
+import { IStatsJobs, IStatsMQTT, IStatsRates } from './statistics.types';
 import { RateMeter } from './rateMeter';
 
 /**
@@ -39,12 +39,6 @@ export const mqttStats: IStatsMQTT = {
   }
 };
 
-/**
- * DataCache statistics
- */
-export const cacheStats: IStatsDataCache = {
-  devices: 0
-};
 
 /**
  * MQTT received messages rate meter.

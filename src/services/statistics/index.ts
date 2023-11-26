@@ -1,6 +1,7 @@
 import { IStatistics, IStatsDataCache, IStatsJobs, IStatsMQTT } from './statistics.types';
-import { cacheStats, getRates, jobStats, mqttRecRate, mqttSendRate, mqttStats } from './passiveStatistics';
+import { getRates, jobStats, mqttRecRate, mqttSendRate, mqttStats } from './passiveStatistics';
 import { messageForwardingService } from '../messageForwardingService';
+import dataCache from '../dataCache';
 
 /**
  * Primary statistic gathering class. This may actively gather statistics.
@@ -14,7 +15,7 @@ class Statistics {
     return {
       jobs: this.jobStats(),
       mqtt: this.mqttStats(),
-      data: cacheStats
+      data: this.cacheStats()
     };
   }
 
@@ -32,7 +33,9 @@ class Statistics {
    * @returns - DataCache statistics
    */
   public cacheStats(): IStatsDataCache {
-    return cacheStats;
+    return {
+      devices: dataCache.count
+    };
   }
 
   /**
