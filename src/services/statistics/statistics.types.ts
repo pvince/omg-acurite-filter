@@ -18,6 +18,21 @@ export interface IStatsJobs {
 }
 
 /**
+ * Number of messages received per measurement
+ */
+export interface IStatsRates {
+  /**
+   * Number of messages received per minute over last 5 minutes
+   */
+  perMin: number;
+
+  /**
+   * Number of messages recevied per second over the last 5 minutes.
+   */
+  perSec: number;
+}
+
+/**
  * MQTT Statistics
  */
 export interface IStatsMQTT {
@@ -46,14 +61,9 @@ export interface IStatsMQTT {
      */
     unparseable: number;
     /**
-     * Number of messages received per minute over last 5 minutes
+     * Message rates
      */
-    msgPerMin: number;
-
-    /**
-     * Number of messages recevied per second over the last 5 minutes.
-     */
-    msgPerSec: number;
+    rates: IStatsRates;
   };
   /**
    * Sent stats
@@ -69,14 +79,9 @@ export interface IStatsMQTT {
      */
     pct_fwded: number;
     /**
-     * Number of messages sent per minute over last 5 minutes
+     * Message rates
      */
-    msgPerMin: number;
-
-    /**
-     * Number of messages sent per second over the last 5 minutes.
-     */
-    msgPerSec: number;
+    rates: IStatsRates;
   };
 }
 

@@ -53,7 +53,7 @@ export class RateMeter {
   public getRatePerMinute(): number {
     this.age_out_data(true);
 
-    return Math.round(this.marks.length / this.getWindowInMinutes());
+    return parseFloat((this.marks.length / this.getWindowInMinutes()).toFixed(2));
   }
 
   /**
@@ -63,7 +63,7 @@ export class RateMeter {
   public getRatePerSecond(): number {
     this.age_out_data(true);
 
-    return Math.round(this.marks.length / this.getWindowInSeconds());
+    return parseFloat((this.marks.length / this.getWindowInSeconds()).toFixed(2));
   }
 
   /**

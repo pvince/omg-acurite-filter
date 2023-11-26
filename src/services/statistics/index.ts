@@ -1,5 +1,5 @@
 import { IStatistics, IStatsDataCache, IStatsJobs, IStatsMQTT } from './statistics.types';
-import { cacheStats, jobStats, mqttRecRate, mqttSendRate, mqttStats } from './passiveStatistics';
+import { cacheStats, getRates, jobStats, mqttRecRate, mqttSendRate, mqttStats } from './passiveStatistics';
 import { messageForwardingService } from '../messageForwardingService';
 
 /**
@@ -42,10 +42,8 @@ class Statistics {
   public mqttStats(): IStatsMQTT {
     // eslint-disable-next-line @typescript-eslint/no-magic-numbers
     mqttStats.sent.pct_fwded = Math.round((mqttStats.sent.total / mqttStats.received.total) * 10000) / 100 ;
-    mqttStats.received.msgPerMin = mqttRecRate.getRatePerMinute();
-    mqttStats.received.msgPerSec = mqttRecRate.getRatePerSecond();
-    mqttStats.sent.msgPerMin = mqttSendRate.getRatePerMinute();
-    mqttStats.sent.msgPerSec = mqttSendRate.getRatePerSecond();
+    mqttStats.sent.rates = getRates(mqttSendRate);
+    mqttStats.received.rates = getRates(mqttRecRate);
     return mqttStats;
   }
 }
