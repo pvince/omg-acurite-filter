@@ -28,6 +28,9 @@
     * Total # per device per receiver
 * REST API?
   * Stats?
+* Publish statistic information to Home Assistant via MQTT & MQTT self discovery.
+* Reverse route MQTT messages from the forwarded destination back to the original sources.
+* Forward OMG device information & reverse route MQTT controll messages back to the OMG devices.
 * Setup PM2 service on VM
 
 
