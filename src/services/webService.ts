@@ -22,7 +22,7 @@ function initializeExpress(): Express {
 
   app.use((req: Request, res: Response, next: NextFunction) => {
     log('Unhandled web request: %s, %s', req.method, req.originalUrl);
-    res.sendStatus(StatusCodes.NOT_FOUND)
+    res.sendStatus(StatusCodes.NOT_FOUND);
   });
   app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
     log(`REST API Error [${req.originalUrl}]: ${err}`);
