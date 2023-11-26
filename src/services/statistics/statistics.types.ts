@@ -71,5 +71,8 @@ export interface IStatistics {
    */
   jobs: IStatsJobs;
 
+  /**
+   * MQTT stats
+   */
   mqtt: IStatsMQTT;
 }
