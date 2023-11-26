@@ -45,6 +45,15 @@ export interface IStatsMQTT {
      * Total MQTT messages that were not parsable JSON
      */
     unparseable: number;
+    /**
+     * Number of messages received per minute over last 5 minutes
+     */
+    msgPerMin: number;
+
+    /**
+     * Number of messages recevied per second over the last 5 minutes.
+     */
+    msgPerSec: number;
   };
   /**
    * Sent stats
@@ -59,6 +68,15 @@ export interface IStatsMQTT {
      * message throttler.
      */
     pct_fwded: number;
+    /**
+     * Number of messages sent per minute over last 5 minutes
+     */
+    msgPerMin: number;
+
+    /**
+     * Number of messages sent per second over the last 5 minutes.
+     */
+    msgPerSec: number;
   };
 }
 

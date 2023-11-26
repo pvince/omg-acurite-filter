@@ -7,7 +7,7 @@ import { DataEntry } from './services/dataEntries/dataEntry';
 import { OMGDevice } from './mqtt/omg_devices/device.types';
 import { dumpMessage } from './mqtt/dumper';
 import { startWebService } from './services/webService';
-import { mqttStats } from './services/statistics/passiveStatistics';
+import { mqttRecRate, mqttStats } from './services/statistics/passiveStatistics';
 
 const log = configuration.log.extend('app');
 
@@ -30,6 +30,7 @@ async function startMQTT(): Promise<void> {
 function processTopic(topic: string, message: Buffer): void {
   const jsonConfig = message.toString();
   mqttStats.received.total++;
+  mqttRecRate.mark();
   try {
     const messageObj = JSON.parse(jsonConfig);
 
