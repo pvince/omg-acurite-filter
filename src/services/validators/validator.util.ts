@@ -1,6 +1,7 @@
 import configuration from '../configuration';
 import { DataEntry } from '../dataEntries/dataEntry';
 import _ from 'lodash';
+import msgLog from '../msgLog';
 
 const log = configuration.log.extend('validator');
 
@@ -61,7 +62,9 @@ export function is_range_valid_generic(prev_data_array: DataEntry[], new_entry: 
   }
 
   if (!isValid) {
-    log(`Invalid ${data_type_name} Received! ${new_entry.get_unique_id()} [prev_value: ${prev_value}] [new_value: ${new_value}]`);
+    const msg = `Invalid ${data_type_name} Received! ${new_entry.get_unique_id()} [prev_value: ${prev_value}] [new_value: ${new_value}]`;
+    log(msg);
+    msgLog.add(new_entry.get_unique_id(), msg);
   }
 
   return isValid;
