@@ -2,6 +2,7 @@ import configuration from './configuration';
 import { DataEntry } from './dataEntries/dataEntry';
 
 import { is_data_valid } from './validators';
+import { cacheStats } from './statistics/passiveStatistics';
 
 const log =  configuration.log.extend('dataCache');
 
@@ -131,6 +132,7 @@ export class DataCache {
     if (dataArray === null && create_missing) {
       dataArray = [];
       this.cache.set(device_id, dataArray);
+      cacheStats.devices++;
     }
     return dataArray;
   }

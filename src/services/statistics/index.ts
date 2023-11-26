@@ -1,5 +1,5 @@
-import { IStatistics, IStatsJobs, IStatsMQTT } from './statistics.types';
-import { jobStats, mqttStats } from './passiveStatistics';
+import { IStatistics, IStatsDataCache, IStatsJobs, IStatsMQTT } from './statistics.types';
+import { cacheStats, jobStats, mqttStats } from './passiveStatistics';
 import { messageForwardingService } from '../messageForwardingService';
 
 /**
@@ -13,7 +13,8 @@ class Statistics {
   public getStats(): IStatistics {
     return {
       jobs: this.jobStats(),
-      mqtt: this.mqttStats()
+      mqtt: this.mqttStats(),
+      data: cacheStats
     };
   }
 
@@ -24,6 +25,14 @@ class Statistics {
   public jobStats(): IStatsJobs {
     jobStats.active = messageForwardingService.getJobCount();
     return jobStats;
+  }
+
+  /**
+   * DataCache statistics
+   * @returns - DataCache statistics
+   */
+  public cacheStats(): IStatsDataCache {
+    return cacheStats;
   }
 
   /**

@@ -1,4 +1,4 @@
-import { IStatsJobs, IStatsMQTT } from './statistics.types';
+import { IStatsDataCache, IStatsJobs, IStatsMQTT } from './statistics.types';
 
 /**
  * Actual job stats
@@ -24,4 +24,11 @@ export const mqttStats: IStatsMQTT = {
     total: 0,
     pct_fwded: 0
   }
+};
+
+/**
+ * DataCache statistics
+ */
+export const cacheStats: IStatsDataCache = {
+  devices: 0
 };

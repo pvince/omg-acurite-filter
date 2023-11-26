@@ -63,6 +63,16 @@ export interface IStatsMQTT {
 }
 
 /**
+ * DataCache stats
+ */
+export interface IStatsDataCache {
+  /**
+   * Total count of unique devices.
+   */
+  devices: number;
+}
+
+/**
  * Statistics interface
  */
 export interface IStatistics {
@@ -75,4 +85,9 @@ export interface IStatistics {
    * MQTT stats
    */
   mqtt: IStatsMQTT;
+
+  /**
+   * DataCache stats
+   */
+  data: IStatsDataCache;
 }
