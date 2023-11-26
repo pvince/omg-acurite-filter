@@ -44,26 +44,23 @@ export class DataCache {
   private readonly cache = new Map<string, DataEntry[]>();
 
   /**
-   * Retrieve a data array that could hold  the current data entry.
-   * @param dataEntry - Newly received data entry
-   * @returns - Cached data entry array for the provided data.
+   * Check if the specified data entry has a corresponding entry in the cache, and return its full array of cached data
+   * if it exists.
+   * @param dataEntry - Data entry value.
+   * @returns - Cached data entry array for the provided data, or null if none is found.
    */
-  public get(dataEntry: DataEntry): DataEntry[] {
-    return this.getByID(dataEntry.get_unique_id());
+  public get(dataEntry: DataEntry): DataEntry[] | null {
+    return this.getByID_internal(dataEntry.get_unique_id(), false);
   }
 
   /**
-   * Retrieves a data entry array for the specified device_id.
-   * @param device_id - Unique device ID
-   * @returns - Cached data entry array for the provided unique device ID
+   * Check if the specified device ID corresponds to an existing array of data entries. If it does, return the full array
+   * of cached data entries.
+   * @param device_id - Device ID to check for
+   * @returns - Cached data entry array for the provided device id, or null if none is found.
    */
-  public getByID(device_id: string): DataEntry[] {
-    let dataArray = this.cache.get(device_id) ?? null;
-    if (dataArray === null) {
-      dataArray = [];
-      this.cache.set(device_id, dataArray);
-    }
-    return dataArray;
+  public getByID(device_id: string): DataEntry[] | null {
+    return this.getByID_internal(device_id, false);
   }
 
   /**
@@ -75,7 +72,7 @@ export class DataCache {
   public add(topic: string, dataEntry: DataEntry): boolean {
     let result = false;
     // Get the cached data
-    const dataArray = this.get(dataEntry);
+    const dataArray = this.get_create(dataEntry);
 
     // Remove any data older than the cache age limit
     remove_stale_data(dataEntry.get_unique_id(), dataArray);
@@ -90,6 +87,52 @@ export class DataCache {
     }
 
     return result;
+  }
+
+  /**
+   * Retrieve an iterator for the data cache.
+   * @returns - Iterator for the data held in cache.
+   */
+  public getEntries(): IterableIterator<[string, DataEntry[]]> {
+    return this.cache.entries();
+  }
+
+  /**
+   * Checks if the provided data entry exists & creates a new data cache entry if it doesn't exist.
+   * @param dataEntry - Newly received data entry
+   * @returns - Cached data entry array for the provided data.
+   * @protected
+   */
+  protected get_create(dataEntry: DataEntry): DataEntry[] {
+    return this.getByID_create(dataEntry.get_unique_id());
+  }
+
+  /**
+   * Checks if the provided device ID corresponds to existing cached data & creates a new cache entry if it doesn't exist.
+   * @param device_id - Newly received device ID
+   * @returns - Cached data entry array for the provided ID
+   * @protected
+   */
+  protected getByID_create(device_id: string): DataEntry[] {
+    return this.getByID_internal(device_id, true);
+  }
+
+
+  protected getByID_internal(device_id: string, create_missing: true): DataEntry[];
+  protected getByID_internal(device_id: string, create_missing: false): DataEntry[] | null;
+  /**
+   * Retrieves a data entry array for the specified device_id.
+   * @param device_id - Unique device ID
+   * @param create_missing - If an entry is not found, should an empty entry be created & cached?
+   * @returns - Cached data entry array for the provided unique device ID.
+   */
+  protected getByID_internal(device_id: string, create_missing: boolean = false): DataEntry[] | null {
+    let dataArray = this.cache.get(device_id) ?? null;
+    if (dataArray === null && create_missing) {
+      dataArray = [];
+      this.cache.set(device_id, dataArray);
+    }
+    return dataArray;
   }
 }
 
