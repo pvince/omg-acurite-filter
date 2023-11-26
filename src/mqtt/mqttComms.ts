@@ -3,6 +3,7 @@ import debug from 'debug';
 import { IClientOptions, IClientPublishOptions, MqttClient } from 'mqtt';
 import _ from 'lodash';
 import { buildTopicRegex, hasWildcards } from './mqtt.util';
+import { mqttStats } from '../services/statistics/passiveStatistics';
 
 /**
  * Callback function invoked when a message is received.
@@ -257,6 +258,7 @@ export async function publish(topic: string, data: object | string, opts: IClien
   if (!_.isString(message)) {
     message = JSON.stringify(data);
   }
+  mqttStats.sent.total++;
   await getClient().publishAsync(topic, message, opts);
 }
 

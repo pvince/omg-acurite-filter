@@ -5,32 +5,10 @@ import { getScheduler } from './jobScheduler';
 import { forwardTopic } from '../mqtt/mqtt.util';
 import { publish } from '../mqtt/mqttComms';
 import { get_replacement_value, get_throttle_rate } from './forwarders';
+import { jobStats } from './statistics/passiveStatistics';
 
 const log = configuration.log.extend('msg-fwd-svc');
 
-/**
- * Job statistics
- */
-export interface IStatsJobs {
-  /**
-   * Active jobs
-   */
-  active: number;
-  /**
-   * Ended jobs
-   */
-  ended: number;
-  /**
-   * Total number of jobs ever started & run.
-   */
-  lifetime: number;
-}
-
-const jobStats: IStatsJobs = {
-  active: 0,
-  ended: 0,
-  lifetime: 0
-};
 
 /**
  * The role of this class is to throttle the torrent of MQTT data coming from multiple OMG Receivers.
@@ -178,12 +156,3 @@ class MessageForwardingService {
 }
 
 export const messageForwardingService = new MessageForwardingService();
-
-/**
- * Retrieve job stats
- * @returns - Job stats
- */
-export function getJobStats(): IStatsJobs {
-  jobStats.active = messageForwardingService.getJobCount();
-  return jobStats;
-}

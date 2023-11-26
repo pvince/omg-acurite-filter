@@ -7,6 +7,7 @@ import { DataEntry } from './services/dataEntries/dataEntry';
 import { OMGDevice } from './mqtt/omg_devices/device.types';
 import { dumpMessage } from './mqtt/dumper';
 import { startWebService } from './services/webService';
+import { mqttStats } from './services/statistics/passiveStatistics';
 
 const log = configuration.log.extend('app');
 
@@ -28,10 +29,13 @@ async function startMQTT(): Promise<void> {
  */
 function processTopic(topic: string, message: Buffer): void {
   const jsonConfig = message.toString();
+  mqttStats.received.total++;
   try {
     const messageObj = JSON.parse(jsonConfig);
 
     if (Object.hasOwn(messageObj as object, 'id')) {
+      mqttStats.received.omg++;
+
       if (configuration.DUMP_MQTT_MSGS) {
         dumpMessage({ topic, message: jsonConfig });
       }
@@ -45,13 +49,17 @@ function processTopic(topic: string, message: Buffer): void {
 
       if (dataCache.add(topic, dataEntry)) {
         messageForwardingService.throttleMessage(dataEntry.get_unique_id(), dataEntry);
+      } else {
+        mqttStats.received.omg_invalid++;
       }
     } else {
       log(`Unknown Message Type! [${topic}] => ${jsonConfig}`);
       messageForwardingService.throttleMessage(topic, { topic, message: jsonConfig, data: messageObj });
+      mqttStats.received.unknown++;
     }
   } catch (e) {
     log(`Failed to parse [${topic}] => ${jsonConfig}]`);
+    mqttStats.received.unparseable++;
     messageForwardingService.forwardMessage({ topic, message: jsonConfig })
       .catch((err) => {
         log(`Failed to send unparsed message  [${topic}] => ${jsonConfig}] - ${err}`);
