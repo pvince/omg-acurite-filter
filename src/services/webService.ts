@@ -3,6 +3,7 @@ import express, { Express, Request, Response, NextFunction } from 'express';
 import compression from 'compression';
 import * as http from 'http';
 import apiRouter from '../restapi';
+import { StatusCodes } from 'http-status-codes';
 
 const log = configuration.log.extend('restapi');
 
@@ -21,10 +22,20 @@ function initializeExpress(): Express {
 
   app.use((req: Request, res: Response, next: NextFunction) => {
     log('Unhandled web request: %s, %s', req.method, req.originalUrl);
-    next();
+    res.sendStatus(StatusCodes.NOT_FOUND)
   });
   app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
     log(`REST API Error [${req.originalUrl}]: ${err}`);
+    res.statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
+    if (err instanceof Error) {
+      res.json({
+        message: err.message
+      });
+    } else {
+      res.json({
+        message: `Unknown error: ${err}`
+      });
+    }
   });
 
   return app;
