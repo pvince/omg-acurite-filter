@@ -19,9 +19,6 @@ const logVerbose = log.extend('verbose');
  * @param msg - Message to log
  */
 function logMsg(msg: IMQTTMessage): void {
-  if (configuration.DUMP_MQTT_MSGS) {
-    dumpMessage(msg);
-  }
   dataStore.add(msg)
     .catch((err) => {
       log(`dataStore: Failed to save ${msg.topic}: ${err}`);
@@ -56,12 +53,16 @@ function processTopic(topic: string, message: Buffer): void {
   mqttStats.received.total++;
   mqttRecRate.mark();
   try {
+    const msg = { topic, message: jsonConfig };
+    logMsg(msg);
     const messageObj = JSON.parse(jsonConfig);
 
     if (Object.hasOwn(messageObj as object, 'id')) {
       mqttStats.received.omg++;
 
-      logMsg({ topic, message: jsonConfig });
+      if (configuration.DUMP_MQTT_MSGS) {
+        dumpMessage(msg);
+      }
 
       // Assume it is a known, OMGDevice.
       // We could clamp this down to only KnownTypes with:
