@@ -91,11 +91,13 @@ class DataStore {
             const new_purge_timestamp = Date.now();
             const purge_due_date = new_purge_timestamp - PURGE_FREQUENCY_IN_MS;
             if (this.last_purge.getTime() < purge_due_date) {
+                log('Purging old messages from the database...');
                 const cutoff_timestamp = new Date(new_purge_timestamp - MAX_MSG_AGE_IN_MS);
 
                 await deleteOldMqttMsgs(this.database, cutoff_timestamp);
 
                 this.last_purge = new Date(new_purge_timestamp);
+                log('Purge complete.');
             }
         }
 
