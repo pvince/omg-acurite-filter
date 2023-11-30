@@ -1,0 +1,18 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="app.ts" type="TypeScriptProgramRunner" factoryName="TypeScript" nameIsGenerated="true">
+    <module name="omg-acurite-filter" />
+    <envs>
+      <env name="DEBUG" value="omg*,-*mqtt_msg,-*rssi" />
+    </envs>
+    <option name="interpreterRef" value="project" />
+    <option name="enabledTsNodeEsmLoader" value="false" />
+    <option name="interpreterOptions" value="" />
+    <option name="workingDirectory" value="" />
+    <option name="tsconfigFile" value="" />
+    <option name="extraTypeScriptOptions" value="" />
+    <option name="scriptName" value="C:\Users\ryodo\Documents\Programming\omg-acurite-filter\src\app.ts" />
+    <option name="programParameters" value="" />
+    <option name="tsnodePackage" value="~\Documents\Programming\omg-acurite-filter\node_modules\ts-node" />
+    <method v="2" />
+  </configuration>
+</component>

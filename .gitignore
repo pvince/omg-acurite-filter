@@ -6,3 +6,4 @@
 /certs/ssl.cert
 /certs/ssl.key
 /docs/
+/data/*.db

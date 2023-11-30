@@ -8,8 +8,32 @@ import { OMGDevice } from './mqtt/omg_devices/device.types';
 import { dumpMessage } from './mqtt/dumper';
 import { startWebService } from './services/webService';
 import { mqttRecRate, mqttStats } from './services/statistics/passiveStatistics';
+import dataStore from './services/database/dataStore';
+import { IMQTTMessage } from './mqtt/IMQTTMessage';
 
 const log = configuration.log.extend('app');
+const logMqttMsg = log.extend('mqtt_msg');
+
+/**
+ * Log received messages.
+ * @param msg - Message to log
+ */
+function logMsg(msg: IMQTTMessage): void {
+  if (configuration.DUMP_MQTT_MSGS) {
+    dumpMessage(msg);
+  }
+  dataStore.add(msg)
+    .catch((err) => {
+      log(`dataStore: Failed to save ${msg.topic}: ${err}`);
+    });
+}
+
+/**
+ * Initialize the data storage
+ */
+async function initializeDataStore(): Promise<void> {
+  await dataStore.initialize();
+}
 
 /**
  * Starts the MQTT client
@@ -37,16 +61,14 @@ function processTopic(topic: string, message: Buffer): void {
     if (Object.hasOwn(messageObj as object, 'id')) {
       mqttStats.received.omg++;
 
-      if (configuration.DUMP_MQTT_MSGS) {
-        dumpMessage({ topic, message: jsonConfig });
-      }
+      logMsg({ topic, message: jsonConfig });
 
       // Assume it is a known, OMGDevice.
       // We could clamp this down to only KnownTypes with:
       //  Object.values(KnownTypes).includes(messageObj.model)
       const device = messageObj as OMGDevice;
       const dataEntry = new DataEntry(topic, device);
-      log(`[${topic}] => IOMGDevice: ${device.model}\t${device.id}`);
+      logMqttMsg(`[${topic}] => IOMGDevice: ${device.model}\t${device.id}`);
 
       if (dataCache.add(topic, dataEntry)) {
         messageForwardingService.throttleMessage(dataEntry.get_unique_id(), dataEntry);
@@ -87,7 +109,10 @@ async function startup(): Promise<void> {
     log(`Dumping all received MQTT messages to ${configuration.MQTT_MSG_LOG_FILE}...`);
   }
 
-  log('Starting MQTT client');
+  log('Loading the data store...');
+  await initializeDataStore();
+
+  log('Starting MQTT client...');
   await startMQTT();
 
   log('Subscribing...');

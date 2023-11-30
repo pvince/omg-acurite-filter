@@ -1,6 +1,8 @@
 import 'dotenv/config';
 import Debug from 'debug';
 import { MS_IN_MINUTE } from '../constants';
+import appRootPath from 'app-root-path';
+import path from 'path';
 
 const UNSET = '<unset>';
 const log = Debug('omg-acurite-filter');
@@ -131,6 +133,22 @@ class Configuration {
    */
     // eslint-disable-next-line @typescript-eslint/no-magic-numbers
   public readonly httpPort = 2998;
+
+  /**
+   * Root directory of the application.
+   * @returns - Root directory of the application.
+   */
+  public get appDir(): string {
+    return appRootPath.path;
+  }
+
+  /**
+   * Directory to store application data.
+   * @returns - Data directory
+   */
+  public get dataDir(): string {
+    return path.join(this.appDir, 'data');
+  }
 
 }
 
