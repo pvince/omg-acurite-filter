@@ -60,7 +60,7 @@ function gatherDataCacheItems(): IAPICacheSummaryItem[] {
  * @param req - Incoming Request
  * @param res - Outgoing response
  */
-function handleData(req: Request, res: Response): void {
+function handleCache(req: Request, res: Response): void {
   res.json(gatherDataCacheItems());
   res.send();
 }
@@ -70,7 +70,7 @@ function handleData(req: Request, res: Response): void {
  * @param req - Incoming request.
  * @param res - Outgoing response.
  */
-function handleDataEntry(req: Request, res: Response): void {
+function handleCacheEntry(req: Request, res: Response): void {
   const id = req.params.id ?? null;
   let entries: DataEntry[] | null = null;
   if (id !== null) {
@@ -100,10 +100,10 @@ function handleCleanup(req: Request, res: Response): void {
   res.send();
 }
 
-const dataRouter = Router();
+const cacheRouter = Router();
 
-dataRouter.get('/v1/data', handleData);
-dataRouter.get('/v1/data/:id', handleDataEntry);
-dataRouter.delete('/v1/data/cleanup', handleCleanup);
+cacheRouter.get('/v1/cache', handleCache);
+cacheRouter.get('/v1/cache/:id', handleCacheEntry);
+cacheRouter.delete('/v1/cache/cleanup', handleCleanup);
 
-export default dataRouter;
+export default cacheRouter;
