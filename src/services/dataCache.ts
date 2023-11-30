@@ -4,7 +4,7 @@ import { DataEntry } from './dataEntries/dataEntry';
 import { is_data_valid } from './validators';
 
 const log =  configuration.log.extend('dataCache');
-
+const logVerbose = log.extend('verbose');
 
 
 /**
@@ -32,7 +32,7 @@ function remove_stale_data(data_id: string, dataArray: DataEntry[]): void {
   }
 
   if (ageOutCount > 0) {
-    log(`${data_id} aged out ${ageOutCount}/${startCount} entries!`);
+    logVerbose(`${data_id} aged out ${ageOutCount}/${startCount} entries!`);
   }
 
 }

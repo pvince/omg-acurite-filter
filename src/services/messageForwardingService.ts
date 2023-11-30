@@ -8,7 +8,7 @@ import { get_replacement_value, get_throttle_rate } from './forwarders';
 import { jobStats } from './statistics/passiveStatistics';
 
 const log = configuration.log.extend('msg-fwd-svc');
-
+const logVerbose = log.extend('verbose');
 
 /**
  * The role of this class is to throttle the torrent of MQTT data coming from multiple OMG Receivers.
@@ -45,7 +45,7 @@ class MessageForwardingService {
    */
   public async forwardMessage(message: IMQTTMessage): Promise<void> {
     const forwardedTopic = forwardTopic(message.topic);
-    log(`Publishing to ${forwardedTopic}`);
+    logVerbose(`Publishing to ${forwardedTopic}`);
     await publish(forwardedTopic, message.message);
   }
 

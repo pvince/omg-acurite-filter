@@ -2,7 +2,7 @@
   <configuration default="false" name="app.ts" type="TypeScriptProgramRunner" factoryName="TypeScript" nameIsGenerated="true">
     <module name="omg-acurite-filter" />
     <envs>
-      <env name="DEBUG" value="omg*,-*mqtt_msg,-*rssi" />
+      <env name="DEBUG" value="omg*,-*verbose" />
     </envs>
     <option name="interpreterRef" value="project" />
     <option name="enabledTsNodeEsmLoader" value="false" />

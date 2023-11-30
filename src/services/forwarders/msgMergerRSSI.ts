@@ -4,6 +4,7 @@ import configuration from '../configuration';
 import { isOMGDevice } from '../../mqtt/mqtt.util';
 
 const log = configuration.log.extend('forwarder:rssi');
+const logVerbose = log.extend('verbose');
 /**
  * Ensure we are sending a consistent RSSI value.
  */
@@ -34,7 +35,7 @@ export class MsgMergerRSSI extends AbstractMsgMerger {
       const newRSSI = Math.max(prevMsg.data.rssi, newMsg.data.rssi);
 
       if (newRSSI !== newMsg.data.rssi) {
-        log(`${newMsg.topic} normalized RSSI from ${newMsg.data.rssi} to ${newRSSI}`);
+        logVerbose(`${newMsg.topic} normalized RSSI from ${newMsg.data.rssi} to ${newRSSI}`);
       }
       newMsg.data.rssi = newRSSI;
       result = newMsg;

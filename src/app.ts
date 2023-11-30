@@ -12,7 +12,7 @@ import dataStore from './services/database/dataStore';
 import { IMQTTMessage } from './mqtt/IMQTTMessage';
 
 const log = configuration.log.extend('app');
-const logMqttMsg = log.extend('mqtt_msg');
+const logVerbose = log.extend('verbose');
 
 /**
  * Log received messages.
@@ -68,7 +68,7 @@ function processTopic(topic: string, message: Buffer): void {
       //  Object.values(KnownTypes).includes(messageObj.model)
       const device = messageObj as OMGDevice;
       const dataEntry = new DataEntry(topic, device);
-      logMqttMsg(`[${topic}] => IOMGDevice: ${device.model}\t${device.id}`);
+      logVerbose(`[${topic}] => IOMGDevice: ${device.model}\t${device.id}`);
 
       if (dataCache.add(topic, dataEntry)) {
         messageForwardingService.throttleMessage(dataEntry.get_unique_id(), dataEntry);
