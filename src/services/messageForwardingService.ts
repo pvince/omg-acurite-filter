@@ -143,7 +143,7 @@ class MessageForwardingService {
       curJob = new SimpleIntervalJob({ milliseconds: throttleRate, runImmediately: true }, task);
       this.jobStore.set(device_id, curJob);
 
-      log('Creating job for device: %s\tTotal Job Count: %d', device_id, this.jobStore.size);
+      log('Creating job for device: %s\tTotal Forwarder Count: %d', device_id, this.jobStore.size);
 
       getScheduler().addSimpleIntervalJob(curJob);
       forwarderStats.lifetime++;
