@@ -82,6 +82,13 @@ class DataStore {
         }
     }
 
+    /**
+     * Retrieves messages by device ID
+     * @param device_id - Device ID to query for
+     * @param max_age_minutes - (Default 5) Maximum age of the messages to retrieve.
+     * @param min_age_minutes - (Default 0) Minimum age of hte messages to retrieve.
+     * @returns - List of request messages.
+     */
     public async getByDeviceID(device_id: string, max_age_minutes?: number, min_age_minutes?: number): Promise<IDataStoreOMGMsg[]> {
         if (!this.database) {
             throw new Error('getByDeviceID() - Datastore is not initialized');
