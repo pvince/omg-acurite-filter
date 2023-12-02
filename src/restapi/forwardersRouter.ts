@@ -6,7 +6,7 @@ import { messageForwardingService } from '../services/messageForwardingService';
 /**
  * Job interface
  */
-interface IJob {
+interface IForwarderJob {
   /**
    * Job ID, aka device ID
    */
@@ -22,12 +22,12 @@ interface IJob {
 }
 
 /**
- * Builds an individual IJob from job data.
+ * Builds an individual IForwarderJob from job data.
  * @param device_id - Device ID
  * @param job - Job from the message forwarding service
- * @returns - New IJob based on active jobs.
+ * @returns - New IForwarderJob based on active jobs.
  */
-function buildJob(device_id: string, job: Job): IJob {
+function buildForwarder(device_id: string, job: Job): IForwarderJob {
   return {
     id: device_id,
     status: job.getStatus(),
@@ -39,10 +39,10 @@ function buildJob(device_id: string, job: Job): IJob {
  * Gathers active job data from the message forwarding service.
  * @returns - List of IJobs we can send to the caller
  */
-function gatherJobData(): IJob[] {
-  const result: IJob[] = [];
+function gatherForwarders(): IForwarderJob[] {
+  const result: IForwarderJob[] = [];
   for (const [device_id, job] of messageForwardingService.jobEntries()) {
-    result.push(buildJob(device_id, job));
+    result.push(buildForwarder(device_id, job));
   }
   return result;
 }
@@ -52,13 +52,13 @@ function gatherJobData(): IJob[] {
  * @param req - Incoming Request
  * @param res - Outgoing response
  */
-function handleJobs(req: Request, res: Response): void {
-  res.json(gatherJobData());
+function handleForwarders(req: Request, res: Response): void {
+  res.json(gatherForwarders());
   res.send();
 }
 
-const jobsRouter = Router();
+const forwardersRouter = Router();
 
-jobsRouter.get('/v1/jobs', handleJobs);
+forwardersRouter.get('/v1/forwarders', handleForwarders);
 
-export default jobsRouter;
+export default forwardersRouter;
