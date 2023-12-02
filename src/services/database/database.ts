@@ -7,6 +7,7 @@ import { IDataStoreEntry } from './dataStore.types';
 
 const log = configuration.log.extend('db');
 
+
 /**
  * Database versions
  */
@@ -22,11 +23,17 @@ export enum DB_VERSION {
    */
   uninitialized,
   /**
-   * Hey! The database says it is the current version! vCurrent should always be the 'current' database version.
-   * When upgrading, add what _was_ the current version as a new DB_VERSION number, eg: v1
+   * msg_mqtt was just timestamp, msg in v2 it was modified
    */
-  vCurrent
+  v1,
+  /**
+   * Changes in v2:
+   * - Added device_id column which can be null.
+   */
+  v2
 }
+
+const vCurrent = DB_VERSION.v2;
 
 /**
  * List of expected database tables
@@ -92,11 +99,11 @@ export async function getDbVersion(db: Database): Promise<[DB_VERSION, null | st
       } else if (dbVersion === DB_VERSION.unknown || dbVersion === DB_VERSION.uninitialized) {
         err_msg = `Database version set to an invalid value: [${DB_VERSION[dbVersion]}]`;
         result = DB_VERSION.unknown;
-      } else if (dbVersion < DB_VERSION.vCurrent) {
+      } else if (dbVersion < vCurrent) {
         err_msg = `Database is an old version [${DB_VERSION[dbVersion]}`;
         result = dbVersion;
-      } else if (dbVersion > DB_VERSION.vCurrent) {
-        err_msg = `Database version [${dbVersion}] is newer than this applications supported database version [${DB_VERSION.vCurrent}].`;
+      } else if (dbVersion > vCurrent) {
+        err_msg = `Database version [${dbVersion}] is newer than this applications supported database version [${vCurrent}].`;
         result = dbVersion;
       } else {
         result = dbVersion; // Hey! We are probably loading the current database version, which is good.
@@ -116,25 +123,49 @@ export async function getDbVersion(db: Database): Promise<[DB_VERSION, null | st
 export async function initializeDb(db: Database): Promise<void> {
   log('Initializing database with new tables...');
   const script =  `
-    create table info
-    (
-      version integer
-    );
-  
-    create table mqtt_msgs
-    (
-      timestamp DATETIME not null,
-      msg       TEXT     not null
-    );
-  
-    create index mqtt_msgs_timestamp_index
-        on mqtt_msgs (timestamp desc);
+      create table info
+      (
+          version integer
+      );
 
-    insert into info (version) values (${DB_VERSION.vCurrent})
+      create table mqtt_msgs
+      (
+          timestamp DATETIME not null,
+          msg       TEXT     not null,
+          device_id text
+      );
+
+      create index mqtt_msgs_device_id_msg_index
+          on mqtt_msgs (device_id, msg);
+
+      create index mqtt_msgs_timestamp_index
+          on mqtt_msgs (timestamp desc);
+
+      insert into info (version) values (${vCurrent})
   `;
 
   await db.exec(script);
 
+}
+
+/**
+ * Database upgrade logic. Upgrades database to v2.
+ * @param db - Database to upgrade.
+ */
+export async function upgradeToV2(db: Database): Promise<void> {
+  log(`Upgrading database to ${DB_VERSION[DB_VERSION.v2]}`);
+  const script = `
+    alter table mqtt_msgs
+      add device_id text;
+
+    create index mqtt_msgs_device_id_msg_index
+        on mqtt_msgs (device_id, msg);
+
+    update info set version = ${DB_VERSION.v2};
+  `;
+
+  await db.exec(script);
+  log(`Upgrade to ${DB_VERSION[DB_VERSION.v2]} complete.`);
 }
 
 /**
@@ -143,22 +174,30 @@ export async function initializeDb(db: Database): Promise<void> {
  */
 export async function loadDB():  Promise<Database> {
   const dbFilePath = getDbFilePath();
-  log(`Loading ${dbFilePath}`);
+  log(`Loading ${dbFilePath}...`);
 
   const db = await open({
     filename: dbFilePath,
     driver: sqlite3.Database
   });
 
-  const [dbVersion, err_msg] = await getDbVersion(db);
+  let [dbVersion, err_msg] = await getDbVersion(db);
 
+  // Check if we need to upgrade the database.
+  if (dbVersion === DB_VERSION.v1) {
+    await upgradeToV2(db);
+    [dbVersion, err_msg] = await getDbVersion(db);
+  }
+
+  // Check if we need to initialize the database, or if we failed to load it.
   if (dbVersion === DB_VERSION.uninitialized) {
     await initializeDb(db);
-  } else if (dbVersion !== DB_VERSION.vCurrent) {
+  } else if (dbVersion !== vCurrent) {
     log(err_msg ?? 'Unknown error');
     throw new Error(err_msg ?? 'Unknown error');
   }
 
+  log('Database loaded.');
   return db;
 }
 

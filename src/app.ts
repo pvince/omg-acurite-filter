@@ -52,12 +52,11 @@ function processTopic(topic: string, message: Buffer): void {
   const jsonConfig = message.toString();
   mqttStats.received.total++;
   mqttRecRate.mark();
+  const msg: IMQTTMessage | null = { topic,  message: jsonConfig };
   try {
-    const msg = { topic, message: jsonConfig };
-    logMsg(msg);
-    const messageObj = JSON.parse(jsonConfig);
+    msg.data = JSON.parse(jsonConfig);
 
-    if (Object.hasOwn(messageObj as object, 'id')) {
+    if (msg.data && Object.hasOwn(msg.data, 'id')) {
       mqttStats.received.omg++;
 
       if (configuration.DUMP_MQTT_MSGS) {
@@ -67,7 +66,7 @@ function processTopic(topic: string, message: Buffer): void {
       // Assume it is a known, OMGDevice.
       // We could clamp this down to only KnownTypes with:
       //  Object.values(KnownTypes).includes(messageObj.model)
-      const device = messageObj as OMGDevice;
+      const device = msg.data as OMGDevice;
       const dataEntry = new DataEntry(topic, device);
       logVerbose(`[${topic}] => IOMGDevice: ${device.model}\t${device.id}`);
 
@@ -78,7 +77,7 @@ function processTopic(topic: string, message: Buffer): void {
       }
     } else {
       log(`Unknown Message Type! [${topic}] => ${jsonConfig}`);
-      messageForwardingService.throttleMessage(topic, { topic, message: jsonConfig, data: messageObj });
+      messageForwardingService.throttleMessage(topic, msg);
       mqttStats.received.unknown++;
     }
   } catch (e) {
@@ -88,6 +87,8 @@ function processTopic(topic: string, message: Buffer): void {
       .catch((err) => {
         log(`Failed to send unparsed message  [${topic}] => ${jsonConfig}] - ${err}`);
       });
+  } finally {
+    logMsg(msg);
   }
 
 }
