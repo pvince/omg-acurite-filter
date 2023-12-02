@@ -102,7 +102,6 @@ class DataStore {
                 log(`Error: purgeOldMsgs - ${err}`);
             }
         }
-
     }
 }
 
