@@ -6,8 +6,8 @@ import _ from 'lodash';
 import { IMQTTMessage } from '../../mqtt/IMQTTMessage';
 import { buildDataEntry } from '../dataEntries/dataEntry';
 import { IDataModelMqttMsg } from './database.types';
-import { IDataStoreOMGMsg } from './dataStore.util';
-import { convertMqttMsg } from './dataStore.types';
+import { IDataStoreOMGMsg } from './dataStore.types';
+import { convertMqttMsg } from './dataStore.util';
 import { MS_IN_MINUTE } from '../../constants';
 
 const log = configuration.log.extend('db');

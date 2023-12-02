@@ -30,7 +30,7 @@ import { MS_IN_DAY } from '../../constants';
 import configuration from '../configuration';
 import { getScheduler } from '../jobScheduler';
 import { AsyncTask, SimpleIntervalJob } from 'toad-scheduler';
-import { IDataStoreOMGMsg } from './dataStore.util';
+import { IDataStoreOMGMsg } from './dataStore.types';
 
 const log = configuration.log.extend('dataStore');
 

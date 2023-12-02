@@ -2,7 +2,7 @@ import { Request, Response, Router } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import expressAsyncHandler from 'express-async-handler';
 import dataStore from '../services/database/dataStore';
-import { IDataStoreOMGMsg } from '../services/database/dataStore.util';
+import { IDataStoreOMGMsg } from '../services/database/dataStore.types';
 import _ from 'lodash';
 import { ParsedQs } from 'qs';
 
