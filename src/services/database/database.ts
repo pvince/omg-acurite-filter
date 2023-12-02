@@ -178,9 +178,11 @@ export async function insertMqttMsg(db: Database, dataStoreEntry: IDataStoreEntr
  * Deletes old MQTT messages from the database.
  * @param db - Database to delete from
  * @param ageCutoff - Max age cutoff for messages.
+ * @returns - Number of messages deleted.
  */
-export async function deleteOldMqttMsgs(db: Database, ageCutoff: Date): Promise<void> {
-  await db.run(
+export async function deleteOldMqttMsgs(db: Database, ageCutoff: Date): Promise<number> {
+  const result = await db.run(
     'DELETE FROM mqtt_msgs where timestamp < ?', ageCutoff
   );
+  return result?.changes ?? 0;
 }

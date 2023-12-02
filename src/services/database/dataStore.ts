@@ -29,6 +29,8 @@ import { deleteOldMqttMsgs, insertMqttMsg, loadDB } from './database';
 import { IDataStoreEntry } from './dataStore.types';
 import { MS_IN_DAY } from '../../constants';
 import configuration from '../configuration';
+import { getScheduler } from '../jobScheduler';
+import { AsyncTask, SimpleIntervalJob } from 'toad-scheduler';
 
 const log = configuration.log.extend('dataStore');
 
@@ -36,7 +38,6 @@ const MAX_MSG_AGE_IN_DAYS = 7;
 const MAX_MSG_AGE_IN_MS = MAX_MSG_AGE_IN_DAYS * MS_IN_DAY;
 
 const PURGE_FREQUENCY_IN_DAYS = 1;
-const PURGE_FREQUENCY_IN_MS = PURGE_FREQUENCY_IN_DAYS * MS_IN_DAY;
 
 /**
  * Data storage class for interacting with the data store.
@@ -49,17 +50,23 @@ class DataStore {
     private database: Database | null = null;
 
     /**
-     * When was the last time the database was cleaned?
-     * This is not going to be accurate, but that is OK. Wor
-     * @private
-     */
-    private last_purge: Date = new Date();
-
-    /**
      * Initialize the dataStore. Must be called before any other functions.
      */
     public async initialize():  Promise<void> {
-        this.database = await loadDB();
+        if (!this.database) {
+            this.database = await loadDB();
+
+            const taskFunc = async (): Promise<void>=> (this.purgeOldMsgs());
+            const task = new AsyncTask('purgeOldMsgs', taskFunc, (err) => {
+                log(`Error: purgeOldMsgs - ${err}`);
+            });
+            const job = new SimpleIntervalJob(
+              { days: PURGE_FREQUENCY_IN_DAYS, runImmediately: true },
+              task);
+            getScheduler().addSimpleIntervalJob(job);
+        } else {
+            log('Error: initialize called,  but database is already initialized.');
+        }
     }
 
     /**
@@ -69,14 +76,11 @@ class DataStore {
      */
     public async add(msg: IMQTTMessage): Promise<void> {
         if (!this.database) {
-            log('Error! Database not initialized.');
+            throw new Error('add() - Datastore is not initialized');
         } else {
             const timestamp = new Date();
             const logLine: IDataStoreEntry = { timestamp, msg };
             await insertMqttMsg(this.database, logLine);
-
-            //todo: This should really be done via a scheduler. This is going to cause a hang each time it is invoked.
-            await this.purgeOldMsgs();
         }
     }
 
@@ -86,18 +90,16 @@ class DataStore {
      */
     protected async purgeOldMsgs(): Promise<void> {
         if (!this.database) {
-            log('Error! Database not initialized.');
+            throw new Error('purgeOldMsgs() - Datastore is not initialized');
         } else {
-            const new_purge_timestamp = Date.now();
-            const purge_due_date = new_purge_timestamp - PURGE_FREQUENCY_IN_MS;
-            if (this.last_purge.getTime() < purge_due_date) {
-                log('Purging old messages from the database...');
-                const cutoff_timestamp = new Date(new_purge_timestamp - MAX_MSG_AGE_IN_MS);
+            try {
+                const cutoff_timestamp = new Date(Date.now() - MAX_MSG_AGE_IN_MS);
+                log(`Purging messages older than ${cutoff_timestamp.toISOString()}...`);
+                const deleted = await deleteOldMqttMsgs(this.database, cutoff_timestamp);
 
-                await deleteOldMqttMsgs(this.database, cutoff_timestamp);
-
-                this.last_purge = new Date(new_purge_timestamp);
-                log('Purge complete.');
+                log(`Purge complete. Deleted ${deleted} messages.`);
+            } catch (err) {
+                log(`Error: purgeOldMsgs - ${err}`);
             }
         }
 
