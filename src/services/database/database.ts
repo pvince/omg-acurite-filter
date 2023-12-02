@@ -5,6 +5,10 @@ import configuration from '../configuration';
 import _ from 'lodash';
 import { IMQTTMessage } from '../../mqtt/IMQTTMessage';
 import { buildDataEntry } from '../dataEntries/dataEntry';
+import { IDataModelMqttMsg } from './database.types';
+import { IDataStoreOMGMsg } from './dataStore.util';
+import { convertMqttMsg } from './dataStore.types';
+import { MS_IN_MINUTE } from '../../constants';
 
 const log = configuration.log.extend('db');
 
@@ -228,4 +232,45 @@ export async function deleteOldMqttMsgs(db: Database, ageCutoff: Date): Promise<
     'DELETE FROM mqtt_msgs where timestamp < ?', ageCutoff
   );
   return result?.changes ?? 0;
+}
+
+const DEFAULT_MAX_AGE_MINUTES = 5;
+
+/**
+ * Retrieve MQTT messages from the database by device ID
+ * @param db - Database to query
+ * @param device_id - Device ID to look for
+ * @param max_age_minutes - Maximum age for the messages
+ * @param min_age_minutes - Minimum age for hte messages.
+ * @returns - Array of the objects found in the database.
+ */
+export async function getMqttMsgsByDevice(
+  db: Database,
+  device_id: string,
+  max_age_minutes: number = DEFAULT_MAX_AGE_MINUTES,
+  min_age_minutes: number = 0
+): Promise<IDataStoreOMGMsg[]> {
+  const result: IDataStoreOMGMsg[] = [];
+
+  const max_age = new Date(Date.now() - max_age_minutes * MS_IN_MINUTE);
+  const min_age = new Date(Date.now() - min_age_minutes * MS_IN_MINUTE);
+
+  // eslint-disable-next-line no-useless-catch
+  try {
+    await db.each(
+      `SELECT timestamp, msg, device_id 
+        FROM mqtt_msgs 
+        WHERE device_id == ? AND timestamp > ? AND timestamp < ?
+        ORDER BY timestamp DESC`,
+      device_id, max_age, min_age,
+      (err, row: IDataModelMqttMsg) => {
+        if (err) {
+          throw err;
+        }
+        result.push(convertMqttMsg(row));
+      });
+  } catch (err) {
+    throw err;
+  }
+  return result;
 }

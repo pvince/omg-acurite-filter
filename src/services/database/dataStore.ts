@@ -25,11 +25,12 @@
 
 import { IMQTTMessage } from '../../mqtt/IMQTTMessage';
 import { Database } from 'sqlite';
-import { deleteOldMqttMsgs, insertMqttMsg, loadDB } from './database';
+import { deleteOldMqttMsgs, getMqttMsgsByDevice, insertMqttMsg, loadDB } from './database';
 import { MS_IN_DAY } from '../../constants';
 import configuration from '../configuration';
 import { getScheduler } from '../jobScheduler';
 import { AsyncTask, SimpleIntervalJob } from 'toad-scheduler';
+import { IDataStoreOMGMsg } from './dataStore.util';
 
 const log = configuration.log.extend('dataStore');
 
@@ -78,6 +79,14 @@ class DataStore {
             throw new Error('add() - Datastore is not initialized');
         } else {
             await insertMqttMsg(this.database, msg);
+        }
+    }
+
+    public async getByDeviceID(device_id: string, max_age_minutes?: number, min_age_minutes?: number): Promise<IDataStoreOMGMsg[]> {
+        if (!this.database) {
+            throw new Error('getByDeviceID() - Datastore is not initialized');
+        } else {
+            return getMqttMsgsByDevice(this.database, device_id, max_age_minutes, min_age_minutes);
         }
     }
 
