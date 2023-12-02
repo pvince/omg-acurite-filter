@@ -3,8 +3,7 @@ import * as mqttComms from './mqtt/mqttComms';
 import configuration from './services/configuration';
 import dataCache from './services/dataCache';
 import { messageForwardingService } from './services/messageForwardingService';
-import { DataEntry } from './services/dataEntries/dataEntry';
-import { OMGDevice } from './mqtt/omg_devices/device.types';
+import { buildDataEntry } from './services/dataEntries/dataEntry';
 import { dumpMessage } from './mqtt/dumper';
 import { startWebService } from './services/webService';
 import { mqttRecRate, mqttStats } from './services/statistics/passiveStatistics';
@@ -56,19 +55,15 @@ function processTopic(topic: string, message: Buffer): void {
   try {
     msg.data = JSON.parse(jsonConfig);
 
-    if (msg.data && Object.hasOwn(msg.data, 'id')) {
+    const dataEntry = buildDataEntry(msg);
+    if (dataEntry !== null) {
       mqttStats.received.omg++;
 
       if (configuration.DUMP_MQTT_MSGS) {
         dumpMessage(msg);
       }
 
-      // Assume it is a known, OMGDevice.
-      // We could clamp this down to only KnownTypes with:
-      //  Object.values(KnownTypes).includes(messageObj.model)
-      const device = msg.data as OMGDevice;
-      const dataEntry = new DataEntry(topic, device);
-      logVerbose(`[${topic}] => IOMGDevice: ${device.model}\t${device.id}`);
+      logVerbose(`[${topic}] => IOMGDevice: ${dataEntry.get_unique_id()}`);
 
       if (dataCache.add(topic, dataEntry)) {
         messageForwardingService.throttleMessage(dataEntry.get_unique_id(), dataEntry);

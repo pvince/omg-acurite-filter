@@ -3,7 +3,8 @@ import { open, Database } from 'sqlite';
 import path from 'path';
 import configuration from '../configuration';
 import _ from 'lodash';
-import { IDataStoreEntry } from './dataStore.types';
+import { IMQTTMessage } from '../../mqtt/IMQTTMessage';
+import { buildDataEntry } from '../dataEntries/dataEntry';
 
 const log = configuration.log.extend('db');
 
@@ -204,13 +205,16 @@ export async function loadDB():  Promise<Database> {
 /**
  * Inserts a new MQTT message into the database.
  * @param db - Database to insert into
- * @param dataStoreEntry - dataStoreEntry to save.
+ * @param mqtt_msg - MQTT Message to save.
  */
-export async function insertMqttMsg(db: Database, dataStoreEntry: IDataStoreEntry): Promise<void> {
+export async function insertMqttMsg(db: Database, mqtt_msg: IMQTTMessage): Promise<void> {
+  const dataEntry = buildDataEntry(mqtt_msg);
+
   await db.run(
-    'INSERT INTO mqtt_msgs ("timestamp", msg) VALUES (?, ?)',
-    dataStoreEntry.timestamp,
-    JSON.stringify(dataStoreEntry));
+    'INSERT INTO mqtt_msgs (timestamp, device_id, msg) VALUES (?, ?, ?)',
+    new Date(),
+    dataEntry?.get_unique_id() ?? null,
+    JSON.stringify(mqtt_msg));
 }
 
 /**

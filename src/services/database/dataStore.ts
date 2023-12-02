@@ -26,7 +26,6 @@
 import { IMQTTMessage } from '../../mqtt/IMQTTMessage';
 import { Database } from 'sqlite';
 import { deleteOldMqttMsgs, insertMqttMsg, loadDB } from './database';
-import { IDataStoreEntry } from './dataStore.types';
 import { MS_IN_DAY } from '../../constants';
 import configuration from '../configuration';
 import { getScheduler } from '../jobScheduler';
@@ -78,9 +77,7 @@ class DataStore {
         if (!this.database) {
             throw new Error('add() - Datastore is not initialized');
         } else {
-            const timestamp = new Date();
-            const logLine: IDataStoreEntry = { timestamp, msg };
-            await insertMqttMsg(this.database, logLine);
+            await insertMqttMsg(this.database, msg);
         }
     }
 

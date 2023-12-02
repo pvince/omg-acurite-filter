@@ -78,3 +78,27 @@ export class DataEntry implements IMQTTMessage {
     return null;
   }
 }
+
+/**
+ * Check if the msg represents an OMG device, and build a new DataEntry if it does. If it doesn't look like an OMG
+ * device, null is returned.
+ *
+ * An object is considered to be an OMG device if it has:
+ * - An 'id' property
+ * - A 'model' property.
+ * @param msg - MQTT message
+ * @returns - If the data looks like an OMG device, a new DataEntry, null otherwise.
+ */
+export function buildDataEntry(msg: IMQTTMessage): DataEntry | null {
+  let result: DataEntry | null = null;
+
+  if (msg.data && Object.hasOwn(msg.data, 'id') && Object.hasOwn(msg.data, 'model')) {
+    // Assume it is a known, OMGDevice.
+    // We could clamp this down to only KnownTypes with:
+    //  Object.values(KnownTypes).includes(messageObj.model)
+    const device = msg.data as OMGDevice;
+    result =  new DataEntry(msg.topic,  device);
+  }
+
+  return result;
+}
