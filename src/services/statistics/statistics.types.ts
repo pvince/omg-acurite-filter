@@ -1,7 +1,7 @@
 /**
  * Job statistics
  */
-export interface IStatsJobs {
+export interface IStatsForwarderJobs {
   /**
    * Active jobs. This data is gathered at the time statistics are requested.
    */
@@ -102,7 +102,7 @@ export interface IStatistics {
   /**
    * Job stats
    */
-  jobs: IStatsJobs;
+  forwarders: IStatsForwarderJobs;
 
   /**
    * MQTT stats

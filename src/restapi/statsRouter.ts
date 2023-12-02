@@ -17,8 +17,8 @@ function handleStats(req: Request, res: Response): void {
  * @param req - Incoming Request
  * @param res - Outgoing response
  */
-function handleJobStats(req: Request, res: Response): void {
-  res.json(statistics.jobStats());
+function handleForwarderStats(req: Request, res: Response): void {
+  res.json(statistics.forwarderStats());
   res.send();
 }
 /**
@@ -34,7 +34,7 @@ function handleMqttStats(req: Request, res: Response): void {
 const jobsRouter = Router();
 
 jobsRouter.get('/v1/stats', handleStats);
-jobsRouter.get('/v1/stats/jobs', handleJobStats);
+jobsRouter.get('/v1/stats/forwarders', handleForwarderStats);
 jobsRouter.get('/v1/stats/mqtt', handleMqttStats);
 
 export default jobsRouter;

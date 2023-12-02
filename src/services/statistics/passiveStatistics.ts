@@ -2,13 +2,13 @@
  * This file is for passively gathering statistic data. It does not actively reach out to any other services. This is
  * to prevent circular references between the statistics service & other services.
  */
-import { IStatsJobs, IStatsMQTT, IStatsRates } from './statistics.types';
+import { IStatsForwarderJobs, IStatsMQTT, IStatsRates } from './statistics.types';
 import { RateMeter } from './rateMeter';
 
 /**
  * Actual job stats
  */
-export const jobStats: IStatsJobs = {
+export const forwarderStats: IStatsForwarderJobs = {
   active: 0,
   ended: 0,
   lifetime: 0

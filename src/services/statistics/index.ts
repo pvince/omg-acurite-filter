@@ -1,5 +1,5 @@
-import { IStatistics, IStatsDataCache, IStatsJobs, IStatsMQTT } from './statistics.types';
-import { getRates, jobStats, mqttRecRate, mqttSendRate, mqttStats } from './passiveStatistics';
+import { IStatistics, IStatsDataCache, IStatsForwarderJobs, IStatsMQTT } from './statistics.types';
+import { getRates, forwarderStats, mqttRecRate, mqttSendRate, mqttStats } from './passiveStatistics';
 import { messageForwardingService } from '../messageForwardingService';
 import dataCache from '../dataCache';
 
@@ -13,7 +13,7 @@ class Statistics {
    */
   public getStats(): IStatistics {
     return {
-      jobs: this.jobStats(),
+      forwarders: this.forwarderStats(),
       mqtt: this.mqttStats(),
       data: this.cacheStats()
     };
@@ -23,9 +23,9 @@ class Statistics {
    * Gathers job information & returns just those stats.
    * @returns - Job stats
    */
-  public jobStats(): IStatsJobs {
-    jobStats.active = messageForwardingService.getJobCount();
-    return jobStats;
+  public forwarderStats(): IStatsForwarderJobs {
+    forwarderStats.active = messageForwardingService.getJobCount();
+    return forwarderStats;
   }
 
   /**

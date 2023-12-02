@@ -5,7 +5,7 @@ import { getScheduler } from './jobScheduler';
 import { forwardTopic } from '../mqtt/mqtt.util';
 import { publish } from '../mqtt/mqttComms';
 import { get_replacement_value, get_throttle_rate } from './forwarders';
-import { jobStats } from './statistics/passiveStatistics';
+import { forwarderStats } from './statistics/passiveStatistics';
 
 const log = configuration.log.extend('msg-fwd-svc');
 const logVerbose = log.extend('verbose');
@@ -106,7 +106,7 @@ class MessageForwardingService {
         log('Finished reporting for [%s], stopping & deleting job',  device_id);
         this.jobStore.get(device_id)?.stop();
         this.jobStore.delete(device_id);
-        jobStats.ended++;
+        forwarderStats.ended++;
       } else {
         await this.forwardMessage(mqtt_message);
 
@@ -146,7 +146,7 @@ class MessageForwardingService {
       log('Creating job for device: %s\tTotal Job Count: %d', device_id, this.jobStore.size);
 
       getScheduler().addSimpleIntervalJob(curJob);
-      jobStats.lifetime++;
+      forwarderStats.lifetime++;
     }
 
     if (curJob.getStatus() !== JobStatus.RUNNING) {
