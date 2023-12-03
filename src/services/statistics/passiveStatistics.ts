@@ -2,7 +2,7 @@
  * This file is for passively gathering statistic data. It does not actively reach out to any other services. This is
  * to prevent circular references between the statistics service & other services.
  */
-import { IStatsForwarderJobs, IStatsMQTT, IStatsRates } from './statistics.types';
+import { IStatsApplication, IStatsForwarderJobs, IStatsMQTT, IStatsRates } from './statistics.types';
 import { RateMeter } from './rateMeter';
 
 /**
@@ -49,6 +49,15 @@ export const mqttRecRate = new RateMeter();
  * MQTT sent messages rate meter.
  */
 export const mqttSendRate = new RateMeter();
+
+/**
+ * Application statistics.
+ */
+export const appStats: IStatsApplication = {
+  uptime: '',
+  startTime: new Date(),
+  memoryWorkingSet: 0
+};
 
 /**
  * Get msg rates for the rate meter.

@@ -1,5 +1,5 @@
 /**
- * Job statistics
+ * Forwarder Job statistics
  */
 export interface IStatsForwarderJobs {
   /**
@@ -96,6 +96,24 @@ export interface IStatsDataCache {
 }
 
 /**
+ * Application statistics
+ */
+export interface IStatsApplication {
+  /**
+   * When was the application started
+   */
+  readonly startTime: Date;
+  /**
+   * Human readable 'uptime'
+   */
+  readonly uptime: string;
+  /**
+   * Memory working set for the application
+   */
+  readonly memoryWorkingSet: number;
+}
+
+/**
  * Statistics interface
  */
 export interface IStatistics {
@@ -112,5 +130,10 @@ export interface IStatistics {
   /**
    * DataCache stats
    */
-  data: IStatsDataCache;
+  cache: IStatsDataCache;
+
+  /**
+   * Application stats
+   */
+  app: IStatsApplication;
 }

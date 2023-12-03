@@ -1,7 +1,8 @@
-import { IStatistics, IStatsDataCache, IStatsForwarderJobs, IStatsMQTT } from './statistics.types';
-import { getRates, forwarderStats, mqttRecRate, mqttSendRate, mqttStats } from './passiveStatistics';
+import { IStatistics, IStatsApplication, IStatsDataCache, IStatsForwarderJobs, IStatsMQTT } from './statistics.types';
+import { getRates, forwarderStats, mqttRecRate, mqttSendRate, mqttStats, appStats } from './passiveStatistics';
 import { messageForwardingService } from '../messageForwardingService';
 import dataCache from '../dataCache';
+import formatDuration from 'format-duration';
 
 /**
  * Primary statistic gathering class. This may actively gather statistics.
@@ -15,7 +16,8 @@ class Statistics {
     return {
       forwarders: this.forwarderStats(),
       mqtt: this.mqttStats(),
-      data: this.cacheStats()
+      cache: this.cacheStats(),
+      app: this.appStats()
     };
   }
 
@@ -48,6 +50,19 @@ class Statistics {
     mqttStats.sent.rates = getRates(mqttSendRate);
     mqttStats.received.rates = getRates(mqttRecRate);
     return mqttStats;
+  }
+
+  /**
+   * Application statistics
+   * @returns - Application statistics
+   */
+  public appStats(): IStatsApplication {
+    const dynamicVals: Partial<IStatsApplication> = {
+      uptime: formatDuration(Date.now() - appStats.startTime.getTime()),
+      memoryWorkingSet: process.memoryUsage().heapUsed
+    };
+
+    return { ...appStats, ...dynamicVals };
   }
 }
 
