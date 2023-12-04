@@ -104,13 +104,26 @@ export interface IStatsApplication {
    */
   readonly startTime: Date;
   /**
+   * Friendly, localized application start time.
+   */
+  readonly startTimeFormatted: string;
+  /**
    * Human readable 'uptime'
    */
   readonly uptime: string;
   /**
-   * Memory working set for the application
+   * Memory info for the application
    */
-  readonly memoryWorkingSet: number;
+  readonly memory: {
+    /**
+     * Total bytes reserved for the process
+     */
+    readonly totalBytes: number;
+    /**
+     * Bytes actually in use by the application.
+     */
+    readonly usedBytes: number;
+  };
 }
 
 /**

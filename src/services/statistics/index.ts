@@ -59,7 +59,10 @@ class Statistics {
   public appStats(): IStatsApplication {
     const dynamicVals: Partial<IStatsApplication> = {
       uptime: formatDuration(Date.now() - appStats.startTime.getTime()),
-      memoryWorkingSet: process.memoryUsage().heapUsed
+      memory: {
+        totalBytes: process.memoryUsage().heapTotal,
+        usedBytes: process.memoryUsage().heapUsed
+      }
     };
 
     return { ...appStats, ...dynamicVals };

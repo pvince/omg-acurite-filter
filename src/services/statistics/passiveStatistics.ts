@@ -4,6 +4,7 @@
  */
 import { IStatsApplication, IStatsForwarderJobs, IStatsMQTT, IStatsRates } from './statistics.types';
 import { RateMeter } from './rateMeter';
+import dateFormat from 'dateformat';
 
 /**
  * Actual job stats
@@ -56,7 +57,11 @@ export const mqttSendRate = new RateMeter();
 export const appStats: IStatsApplication = {
   uptime: '',
   startTime: new Date(),
-  memoryWorkingSet: 0
+  startTimeFormatted: dateFormat(new Date(), 'yyyy.dd.mm h:MM:ss tt'),
+  memory: {
+    totalBytes: 0,
+    usedBytes: 0
+  }
 };
 
 /**
