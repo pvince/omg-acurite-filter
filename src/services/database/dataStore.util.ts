@@ -15,6 +15,7 @@ export function convertMqttMsg(mqttModel: IDataModelMqttMsg): IDataStoreOMGMsg {
   return {
     timestamp: new Date(mqttModel.timestamp),
     device_id: mqttModel.device_id ?? '',
-    msg: mqtt_msg.data as OMGDevice
+    msg: mqtt_msg.data as OMGDevice,
+    topic: mqtt_msg.topic
   };
 }

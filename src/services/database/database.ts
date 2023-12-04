@@ -9,6 +9,7 @@ import { IDataModelMqttMsg } from './database.types';
 import { IDataStoreOMGMsg } from './dataStore.types';
 import { convertMqttMsg } from './dataStore.util';
 import { MS_IN_MINUTE } from '../../constants';
+import * as fs from 'fs';
 
 const log = configuration.log.extend('db');
 
@@ -180,6 +181,8 @@ export async function upgradeToV2(db: Database): Promise<void> {
 export async function loadDB():  Promise<Database> {
   const dbFilePath = getDbFilePath();
   log(`Loading ${dbFilePath}...`);
+
+  await fs.promises.mkdir(configuration.dataDir, { recursive: true });
 
   const db = await open({
     filename: dbFilePath,

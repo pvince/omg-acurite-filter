@@ -10,6 +10,11 @@ export interface IDataStoreOMGMsg {
   timestamp: Date;
 
   /**
+   * MQTT topic for the message
+   */
+  topic: string;
+
+  /**
    * Parsed OMG device object
    */
   msg: OMGDevice;
