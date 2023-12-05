@@ -5,7 +5,7 @@ import dataStore from '../services/database/dataStore';
 import { IDataStoreOMGMsg } from '../services/database/dataStore.types';
 import _ from 'lodash';
 import { ParsedQs } from 'qs';
-
+import { buildError, buildSuccess, isError, isSuccess } from './apiError';
 
 
 /**
@@ -23,18 +23,30 @@ async function handleMsgsByDeviceID(req: Request, res: Response): Promise<void> 
     return result;
   };
 
+  let status = buildSuccess();
+
   const device_id = req.params.device_id ?? null;
   const max_age = parseNum(req.query.max_age);
   const min_age = parseNum(req.query.min_age);
 
   let result: IDataStoreOMGMsg[] | null = null;
-  if (device_id !== null) {
+  if (max_age && min_age && max_age < min_age) {
+    status = buildError('max_age must be greater than min_age', StatusCodes.BAD_REQUEST);
+  } else if (device_id === null) {
+    status = buildError('device_id is required.', StatusCodes.BAD_REQUEST);
+  } else {
     result = await dataStore.getByDeviceID(device_id, max_age, min_age);
   }
-  if (result !== null) {
-    res.json(result);
+
+  if (isSuccess(status) && result === null) {
+    status = buildError(`Device with id ${device_id} not found.`, StatusCodes.NOT_FOUND);
   } else {
-    res.sendStatus(StatusCodes.NOT_FOUND);
+    res.json(result);
+  }
+
+  if (isError(status)) {
+    res.json(status);
+    res.statusCode = status.code;
   }
 }
 

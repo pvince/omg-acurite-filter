@@ -250,13 +250,42 @@ const DEFAULT_MAX_AGE_MINUTES = 5;
 export async function getMqttMsgsByDevice(
   db: Database,
   device_id: string,
-  max_age_minutes: number = DEFAULT_MAX_AGE_MINUTES,
-  min_age_minutes: number = 0
+  max_age_minutes?: number,
+  min_age_minutes?: number
 ): Promise<IDataStoreOMGMsg[]> {
   const result: IDataStoreOMGMsg[] = [];
 
-  const max_age = new Date(Date.now() - max_age_minutes * MS_IN_MINUTE);
-  const min_age = new Date(Date.now() - min_age_minutes * MS_IN_MINUTE);
+  // Possible:
+  // 1. Have Min, Have Max
+  //  - Done
+  // 2. Have Min, No Max
+  //  - Max = Min + Default
+  // 3. No Min, No Max
+  //  - Max & Min = Default
+  // 4. No Min, Have Max
+  //  - Min = Max - Default
+
+  let _tmpMaxAge = max_age_minutes;
+  let _tmpMinAge = min_age_minutes;
+  if (_tmpMinAge === undefined && _tmpMaxAge === undefined) {
+    _tmpMinAge = 0;
+    _tmpMaxAge = _tmpMinAge + DEFAULT_MAX_AGE_MINUTES;
+  } else if (_tmpMaxAge) {
+    // Have max
+    _tmpMinAge = _tmpMaxAge - DEFAULT_MAX_AGE_MINUTES;
+  } else if (_tmpMinAge) {
+    // Have Min
+    _tmpMaxAge = _tmpMinAge + DEFAULT_MAX_AGE_MINUTES;
+  }
+
+  // Make typescript happy...
+  if (!_tmpMaxAge || !_tmpMinAge) {
+    _tmpMinAge = 0;
+    _tmpMaxAge = _tmpMinAge + DEFAULT_MAX_AGE_MINUTES;
+  }
+
+  const max_age = new Date(Date.now() - _tmpMaxAge * MS_IN_MINUTE);
+  const min_age = new Date(Date.now() - _tmpMinAge * MS_IN_MINUTE);
 
   // eslint-disable-next-line no-useless-catch
   try {

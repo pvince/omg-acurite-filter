@@ -4,6 +4,7 @@ import compression from 'compression';
 import * as http from 'http';
 import apiRouter from '../restapi';
 import { StatusCodes } from 'http-status-codes';
+import { translateError } from '../restapi/apiError';
 
 const log = configuration.log.extend('restapi');
 
@@ -26,16 +27,9 @@ function initializeExpress(): Express {
   });
   app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
     log(`REST API Error [${req.originalUrl}]: ${err}`);
-    res.statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
-    if (err instanceof Error) {
-      res.json({
-        message: err.message
-      });
-    } else {
-      res.json({
-        message: `Unknown error: ${err}`
-      });
-    }
+    const apiError = translateError(err);
+    res.statusCode = apiError.code;
+    res.json(apiError);
   });
 
   return app;
