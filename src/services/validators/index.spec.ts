@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-magic-numbers,@typescript-eslint/no-unused-expressions */
 import { get_lightning_data_entry } from './validateStrikeCount.spec';
-import { is_data_valid } from './index';
+import { initialize_validators, is_data_valid } from './index';
 
 import { describe, it } from 'mocha';
 import { expect } from 'chai';
@@ -9,6 +9,13 @@ import { VALID_RANGE } from './validateStrikeCount';
 
 describe('is_data_valid', () => {
     describe('Acurite6045M Lightning Detector', () => {
+        afterEach(() => {
+            // Some validators cache values on the validator themselves.
+            // Prevent test shine-through by wiping the validators between
+            // tests.
+            initialize_validators();
+        });
+
         it('should detect bad temperature', () => {
             let strike_count = 142;
             let temperature_C = 6.777777778;
@@ -77,6 +84,47 @@ describe('is_data_valid', () => {
             const result = is_data_valid(prev_values, new_value);
 
             expect(result).to.be.false;
+        });
+
+        it('should detect temporary bad lightning (increased)', () => {
+            const strike_count = 142;
+            const bad_strike_count = strike_count + 4;
+            const val1 = get_lightning_data_entry({ strike_count: bad_strike_count });
+            const val2 = get_lightning_data_entry({ strike_count });
+
+            const prev_values = [
+                get_lightning_data_entry({ strike_count  })
+            ];
+
+            // Prime the validator
+            expect(is_data_valid(prev_values, val2)).to.be.true;
+
+            // Send the bad value
+            expect(is_data_valid(prev_values, val1)).to.be.false;
+
+            // Watch it recover.
+            expect(is_data_valid(prev_values, val2)).to.be.false;
+            expect(is_data_valid(prev_values, val2)).to.be.true;
+        });
+
+        it('should detect temporary bad lightning (decreased)', () => {
+            const strike_count = 142;
+            const bad_strike_count = strike_count - 4;
+            const val1 = get_lightning_data_entry({ strike_count: bad_strike_count });
+            const val2 = get_lightning_data_entry({ strike_count });
+
+            const prev_values = [
+                get_lightning_data_entry({ strike_count  })
+            ];
+
+            // Prime the validator
+            expect(is_data_valid(prev_values, val2)).to.be.true;
+
+            // Send the bad value
+            expect(is_data_valid(prev_values, val1)).to.be.false;
+
+            // Watch it recover.
+            expect(is_data_valid(prev_values, val2)).to.be.true;
         });
 
         it('should detect bad lightning (out of range)', () => {

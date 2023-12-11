@@ -41,16 +41,17 @@ export class ValidateStrikeCount implements Validator {
       return result;
     };
 
-    let isValid = true;
-    let error: IValidatorError | null = null;
-
     const curValue = get_value(new_entry) ?? 0;
 
-    // First, use the new logic that works almost solely on confirming that we have received two identical values
+    // Let's start w/ the standard bounding limits
+    let [isValid, error] = is_range_valid_generic(prev_data_array, new_entry,
+        'Strike count', get_value, VALID_RANGE, { onlyIncrementing: true });
+
+    // Next, use the new logic that works almost solely on confirming that we have received two identical values
     // in a row.
     if (this.previousValue === 0) {
       this.previousValue = curValue;
-    } else if (this.previousValue !== curValue) {
+    } else if ( isValid &&  this.previousValue !== curValue) {
       isValid = false;
       error = {
         dataType: 'Strike count',
@@ -61,10 +62,6 @@ export class ValidateStrikeCount implements Validator {
     }
 
     // Next, make sure it fits in our standard 'bounding' limits.
-    if (isValid) {
-      [isValid, error] = is_range_valid_generic(prev_data_array, new_entry,
-        'Strike count', get_value, VALID_RANGE, { onlyIncrementing: true });
-    }
 
     return [isValid, error];
   }

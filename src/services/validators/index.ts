@@ -4,19 +4,30 @@ import { ValidateRain } from './validateRain';
 import { ValidateMaverickTemp } from './validateMaverickTemp';
 import { DataEntry } from '../dataEntries/dataEntry';
 import { ValidateStrikeCount } from './validateStrikeCount';
-import { IValidatorError } from './validator';
+import { IValidatorError, Validator } from './validator';
 import msgLog from '../msgLog';
 import configuration from '../configuration';
 
 const log = configuration.log.extend('validator');
 
-const validators = [
-  new ValidateAcuriteTemp(),
-  new ValidateHumidity(),
-  new ValidateRain(),
-  new ValidateMaverickTemp(),
-  new ValidateStrikeCount()
-];
+let validators: Validator[] = [];
+
+/**
+ * Re-initalizes the validators back to their default state. Useful for
+ * unit tests.
+ */
+export function initialize_validators(): void {
+  validators = [
+    new ValidateAcuriteTemp(),
+    new ValidateHumidity(),
+    new ValidateRain(),
+    new ValidateMaverickTemp(),
+    new ValidateStrikeCount()
+  ];
+}
+initialize_validators();
+
+
 
 /**
  * Does the newly received data have valid values?

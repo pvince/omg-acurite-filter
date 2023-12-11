@@ -48,7 +48,7 @@ describe('validaateRain', () => {
     const new_data = get_data_entry({ rain_mm: 888.0 });
     const validator = new ValidateRain();
     expect(validator.canValidate(new_data.data)).to.be.true;
-    expect(validator.validate(prev_values, new_data)).to.be.true;
+    expect(validator.validate(prev_values, new_data)[0]).to.be.true;
   });
 
   it('should allow higher values', () => {
@@ -61,7 +61,7 @@ describe('validaateRain', () => {
     const new_data = get_data_entry({ rain_mm: 888.1 });
     const validator = new ValidateRain();
     expect(validator.canValidate(new_data.data)).to.be.true;
-    expect(validator.validate(prev_values, new_data)).to.be.true;
+    expect(validator.validate(prev_values, new_data)[0]).to.be.true;
   });
 
   it('should prevent lower values', () => {
@@ -74,6 +74,6 @@ describe('validaateRain', () => {
     const new_data = get_data_entry({ rain_mm: 887.9 });
     const validator = new ValidateRain();
     expect(validator.canValidate(new_data.data)).to.be.true;
-    expect(validator.validate(prev_values, new_data)).to.be.false;
+    expect(validator.validate(prev_values, new_data)[0]).to.be.false;
   });
 });
