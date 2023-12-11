@@ -17,7 +17,7 @@ function remove_stale_data(data_id: string, dataArray: DataEntry[]): void {
     return;
   }
 
-  const timestampCutoff = new Date(Date.now() - (configuration.maxCacheAge));
+  const timestampCutoff = new Date(configuration.dateNow() - (configuration.maxCacheAge));
 
   const startCount = dataArray.length;
   let ageOutCount = 0;

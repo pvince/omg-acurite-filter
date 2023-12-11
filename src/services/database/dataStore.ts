@@ -56,14 +56,16 @@ class DataStore {
         if (!this.database) {
             this.database = await loadDB();
 
-            const taskFunc = async (): Promise<void>=> (this.purgeOldMsgs());
-            const task = new AsyncTask('purgeOldMsgs', taskFunc, (err) => {
-                log(`Error: purgeOldMsgs - ${err}`);
-            });
-            const job = new SimpleIntervalJob(
-              { days: PURGE_FREQUENCY_IN_DAYS, runImmediately: true },
-              task);
-            getScheduler().addSimpleIntervalJob(job);
+            if (!configuration.isReplayMode) {
+                const taskFunc = async (): Promise<void>=> (this.purgeOldMsgs());
+                const task = new AsyncTask('purgeOldMsgs', taskFunc, (err) => {
+                    log(`Error: purgeOldMsgs - ${err}`);
+                });
+                const job = new SimpleIntervalJob(
+                  { days: PURGE_FREQUENCY_IN_DAYS, runImmediately: true },
+                  task);
+                getScheduler().addSimpleIntervalJob(job);
+            }
         } else {
             log('Error: initialize called,  but database is already initialized.');
         }
@@ -75,10 +77,12 @@ class DataStore {
      * @returns - Promise that resolves when finished.
      */
     public async add(msg: IMQTTMessage): Promise<void> {
-        if (!this.database) {
-            throw new Error('add() - Datastore is not initialized');
-        } else {
-            await insertMqttMsg(this.database, msg);
+        if (!configuration.isReplayMode) {
+            if (!this.database) {
+                throw new Error('add() - Datastore is not initialized');
+            } else {
+                await insertMqttMsg(this.database, msg);
+            }
         }
     }
 
@@ -106,7 +110,7 @@ class DataStore {
             throw new Error('purgeOldMsgs() - Datastore is not initialized');
         } else {
             try {
-                const cutoff_timestamp = new Date(Date.now() - MAX_MSG_AGE_IN_MS);
+                const cutoff_timestamp = new Date(configuration.dateNow() - MAX_MSG_AGE_IN_MS);
                 log(`Purging messages older than ${cutoff_timestamp.toISOString()}...`);
                 const deleted = await deleteOldMqttMsgs(this.database, cutoff_timestamp);
 

@@ -1,0 +1,18 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="replay.ts" type="TypeScriptProgramRunner" factoryName="TypeScript">
+    <module name="omg-acurite-filter" />
+    <envs>
+      <env name="DEBUG" value="omg*,-*verbose,-*msg-fwd-svc," />
+    </envs>
+    <option name="interpreterRef" value="project" />
+    <option name="enabledTsNodeEsmLoader" value="false" />
+    <option name="interpreterOptions" value="" />
+    <option name="workingDirectory" value="" />
+    <option name="tsconfigFile" value="" />
+    <option name="extraTypeScriptOptions" value="" />
+    <option name="scriptName" value="C:\Users\ryodo\Documents\Programming\omg-acurite-filter\src\replay.ts" />
+    <option name="programParameters" value="" />
+    <option name="tsnodePackage" value="~\Documents\Programming\omg-acurite-filter\node_modules\ts-node" />
+    <method v="2" />
+  </configuration>
+</component>

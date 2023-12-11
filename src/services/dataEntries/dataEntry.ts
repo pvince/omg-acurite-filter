@@ -2,6 +2,7 @@ import { IMQTTMessage } from '../../mqtt/IMQTTMessage';
 import { AcuriteDevice, AcuriteTypes } from '../../mqtt/omg_devices/acurite.types';
 import { getAcuriteHumidity, getAcuriteTemperature, getUniqueAcuriteID } from '../../mqtt/omg_devices/acurite.util';
 import { OMGDevice } from '../../mqtt/omg_devices/device.types';
+import configuration from '../configuration';
 
 /**
  * Individual data entry.
@@ -38,7 +39,7 @@ export class DataEntry implements IMQTTMessage {
   public constructor(topic: string, data: OMGDevice) {
     this.topic = topic;
     this.data = data;
-    this.timestamp = new Date();
+    this.timestamp = configuration.newDate();
   }
 
   /**

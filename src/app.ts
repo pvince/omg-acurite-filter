@@ -46,8 +46,9 @@ async function startMQTT(): Promise<void> {
  * Process the provided MQTT message.
  * @param topic - Topic for the message
  * @param message - Received MQTT message
+ * @param blockSending - Used when replaying messages to block sending messages.
  */
-function processTopic(topic: string, message: Buffer): void {
+export function processTopic(topic: string, message: Buffer): void {
   const jsonConfig = message.toString();
   mqttStats.received.total++;
   mqttRecRate.mark();
@@ -118,8 +119,10 @@ async function startup(): Promise<void> {
   await startWebService();
 }
 
-startup()
-  .catch((err) => {
-    console.error(`Error: ${err}`);
-  });
-
+// If the configuration says we are in replay mode, do not start the service.
+if (!configuration.isReplayMode) {
+  startup()
+    .catch((err) => {
+      console.error(`Error: ${err}`);
+    });
+}

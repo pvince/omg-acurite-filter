@@ -3,6 +3,7 @@ import { getRates, forwarderStats, mqttRecRate, mqttSendRate, mqttStats, appStat
 import { messageForwardingService } from '../messageForwardingService';
 import dataCache from '../dataCache';
 import formatDuration from 'format-duration';
+import configuration from '../configuration';
 
 /**
  * Primary statistic gathering class. This may actively gather statistics.
@@ -58,7 +59,7 @@ class Statistics {
    */
   public appStats(): IStatsApplication {
     const dynamicVals: Partial<IStatsApplication> = {
-      uptime: formatDuration(Date.now() - appStats.startTime.getTime()),
+      uptime: formatDuration(configuration.dateNow() - appStats.startTime.getTime()),
       memory: {
         totalBytes: process.memoryUsage().heapTotal,
         usedBytes: process.memoryUsage().heapUsed

@@ -46,7 +46,9 @@ class MessageForwardingService {
   public async forwardMessage(message: IMQTTMessage): Promise<void> {
     const forwardedTopic = forwardTopic(message.topic);
     logVerbose(`Publishing to ${forwardedTopic}`);
-    await publish(forwardedTopic, message.message);
+    if (!configuration.isReplayMode) {
+      await publish(forwardedTopic, message.message);
+    }
   }
 
   /**
@@ -108,7 +110,9 @@ class MessageForwardingService {
         this.jobStore.delete(device_id);
         forwarderStats.ended++;
       } else {
-        await this.forwardMessage(mqtt_message);
+        if (!configuration.isReplayMode) {
+          await this.forwardMessage(mqtt_message);
+        }
 
         // Now, delete the message we just sent.
         this.messages.delete(device_id);

@@ -1,4 +1,5 @@
 import { MS_IN_DAY, MS_IN_HOUR } from '../constants';
+import configuration from './configuration';
 
 /**
  * Message entries in the log
@@ -65,9 +66,9 @@ class MsgLog {
       return;
     }
 
-    const purgeCuttoff = new Date(Date.now() - PURGE_FREQUENCY);
+    const purgeCuttoff = new Date(configuration.dateNow() - PURGE_FREQUENCY);
     if (force || purgeCuttoff > this.lastPurged) {
-      const eventCuttoff = new Date(Date.now() - LOG_DURATION);
+      const eventCuttoff = new Date(configuration.dateNow() - LOG_DURATION);
       let finished = false;
       while (!finished && this.messages.length > 0) {
         if (this.messages[0].timestamp < eventCuttoff) {
@@ -77,7 +78,7 @@ class MsgLog {
         }
       }
 
-      this.lastPurged = new Date();
+      this.lastPurged = configuration.newDate();
     }
   }
 }

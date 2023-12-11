@@ -217,11 +217,17 @@ export async function loadDB():  Promise<Database> {
 export async function insertMqttMsg(db: Database, mqtt_msg: IMQTTMessage): Promise<void> {
   const dataEntry = buildDataEntry(mqtt_msg);
 
+  const dbEntry: IDataModelMqttMsg = {
+    timestamp: Date.now(),
+    msg: JSON.stringify(mqtt_msg),
+    device_id: dataEntry?.get_unique_id() ?? null
+  };
+
   await db.run(
     'INSERT INTO mqtt_msgs (timestamp, device_id, msg) VALUES (?, ?, ?)',
-    new Date(),
-    dataEntry?.get_unique_id() ?? null,
-    JSON.stringify(mqtt_msg));
+    dbEntry.timestamp,
+    dbEntry.device_id,
+    dbEntry.msg);
 }
 
 /**

@@ -150,6 +150,38 @@ class Configuration {
     return path.join(this.appDir, 'data');
   }
 
+  /**
+   * Are we running in replay mode?
+   */
+  public isReplayMode = false;
+
+  public dateOverride: Date | null = null;
+
+  /**
+   * Gets a 'new' date. If using a date override, returns that.
+   * @returns - 'New' date.
+   */
+  public newDate(): Date {
+    let result = this.dateOverride;
+    if (!result) {
+      result = new Date();
+    }
+    return result;
+  }
+
+  /**
+   * Gets a 'new' date. If using a date override, returns that.
+   * @returns - 'New' date.
+   */
+  public dateNow(): number {
+    return this.newDate().getTime();
+  }
+
+  public throttleRateMinutes = 1;
+
+  public get throttleRate(): number {
+    return this.throttleRateMinutes * MS_IN_MINUTE;
+  }
 }
 
 const configuration = new Configuration();

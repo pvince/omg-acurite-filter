@@ -1,9 +1,10 @@
-import { AbstractThrottler, DEFAULT_THROTTLE_RATE } from './throttler';
+import { AbstractThrottler } from './throttler';
 import { IMQTTMessage } from '../../mqtt/IMQTTMessage';
 import { isOMGDevice } from '../../mqtt/mqtt.util';
 import { KnownType } from '../../mqtt/omg_devices/device';
 import { MS_IN_SECOND } from '../../constants';
 import { IMaverickET73x } from '../../mqtt/omg_devices/maverick.types';
+import configuration from '../configuration';
 
 const TEMP_THRESHOLD = 150; // 302 F
 const FAST_THROTTLE_RATE_SECONDS = 30;
@@ -32,7 +33,7 @@ export class ThrottlerMaverick implements AbstractThrottler {
    * @returns - Returns custom throttle rate for this message
    */
   public getCustomRate(msg: IMQTTMessage): number {
-    let result = DEFAULT_THROTTLE_RATE;
+    let result = configuration.throttleRate;
 
     if (isOMGDevice(msg.data) && msg.data.model === KnownType.MaverickET73) {
       const maverick = msg.data as IMaverickET73x;

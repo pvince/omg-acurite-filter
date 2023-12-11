@@ -1,8 +1,4 @@
 import { IMQTTMessage } from '../../mqtt/IMQTTMessage';
-import { MS_IN_MINUTE } from '../../constants';
-
-const THROTTLE_RATE_MINUTES = 1;
-export const DEFAULT_THROTTLE_RATE = THROTTLE_RATE_MINUTES * MS_IN_MINUTE;
 
 /**
  * Allows customizing the message throttling

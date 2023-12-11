@@ -1,7 +1,7 @@
 import { IMQTTMessage } from '../../mqtt/IMQTTMessage';
 import { MsgMergerRSSI } from './msgMergerRSSI';
 import { ThrottlerMaverick } from './throttlerMaverick';
-import { DEFAULT_THROTTLE_RATE } from './throttler';
+import configuration from '../configuration';
 
 /**
  * All the custom message forwarding mergers. All forwarders will be called in order here with the result
@@ -25,7 +25,7 @@ const throttlerInstances = [
  * @returns - Returns throttle rate in milliseconds.
  */
 export function get_throttle_rate(mqttMsg: IMQTTMessage):  number {
-  let result = DEFAULT_THROTTLE_RATE;
+  let result = configuration.throttleRate;
   for (const throttler of throttlerInstances) {
     if (throttler.hasCustomRate(mqttMsg)) {
       result = throttler.getCustomRate(mqttMsg);

@@ -1,4 +1,5 @@
 import { MS_IN_MINUTE, MS_IN_SECOND, SECONDS_IN_MINUTE } from '../../constants';
+import configuration from '../configuration';
 
 /**
  * What do I care about?
@@ -30,7 +31,7 @@ export class RateMeter {
    * When was the history last purged of old data?
    * @private
    */
-  private lastPurged = new Date();
+  private lastPurged = configuration.newDate();
 
   /**
    * Event data
@@ -79,9 +80,9 @@ export class RateMeter {
 
     // Don't constantly purge old data. Only do it if it has been a while since the last purge
     // or if we are forced to because we are about to calculate statistics.
-    const lastPurgeCutoff = new Date(Date.now() - MAX_PURGE_FREQUENCY);
+    const lastPurgeCutoff = new Date(configuration.dateNow() - MAX_PURGE_FREQUENCY);
     if (force || lastPurgeCutoff > this.lastPurged ) {
-      const eventCutoff = new Date(Date.now() - this.ratePeriod);
+      const eventCutoff = new Date(configuration.dateNow() - this.ratePeriod);
       let finished = false;
       while (!finished && this.marks.length > 0) {
         if (this.marks[0] < eventCutoff) {
@@ -102,10 +103,10 @@ export class RateMeter {
    */
   private getWindowInSeconds(): number {
     const oldestMark = this.marks[0];
-    const windowTimestamp  = new Date(Date.now() - this.ratePeriod);
+    const windowTimestamp  = new Date(configuration.dateNow() - this.ratePeriod);
     let result = this.ratePeriod / MS_IN_SECOND;
     if (oldestMark > windowTimestamp) {
-      result = (Date.now() - oldestMark.getTime()) / MS_IN_SECOND;
+      result = (configuration.dateNow() - oldestMark.getTime()) / MS_IN_SECOND;
     }
 
     return result;

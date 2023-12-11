@@ -11,3 +11,9 @@ export const HOURS_IN_DAY = 24;
 export const MS_IN_DAY = HOURS_IN_DAY * MINUTES_IN_HOUR * MS_IN_MINUTE;
 
 export const MS_IN_HOUR = MINUTES_IN_HOUR * MS_IN_MINUTE;
+
+export async function sleepPromise(ms_duration: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms_duration);
+  });
+}
