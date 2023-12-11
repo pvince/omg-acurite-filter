@@ -46,7 +46,6 @@ async function startMQTT(): Promise<void> {
  * Process the provided MQTT message.
  * @param topic - Topic for the message
  * @param message - Received MQTT message
- * @param blockSending - Used when replaying messages to block sending messages.
  */
 export function processTopic(topic: string, message: Buffer): void {
   const jsonConfig = message.toString();

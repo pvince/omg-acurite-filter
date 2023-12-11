@@ -177,8 +177,15 @@ class Configuration {
     return this.newDate().getTime();
   }
 
+  /**
+   * Throttle rate for sending messages is overridden by replay.
+   */
   public throttleRateMinutes = 1;
 
+  /**
+   * Throttle rate for forwarding messages
+   * @returns - Throttle rate
+   */
   public get throttleRate(): number {
     return this.throttleRateMinutes * MS_IN_MINUTE;
   }

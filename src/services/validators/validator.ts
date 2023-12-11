@@ -1,9 +1,22 @@
 import { DataEntry } from '../dataEntries/dataEntry';
 import { OMGDevice } from '../../mqtt/omg_devices/device.types';
 
+/**
+ * Validator error interface
+ */
 export interface IValidatorError {
+  /**
+   * Friendly type description for what failed validation
+   * @example Strike count
+   */
   dataType: string;
+  /**
+   * Previous value (probably a valid one)
+   */
   prev_value: number | null;
+  /**
+   * New (invalid) value.
+   */
   new_value: number | null;
 }
 
