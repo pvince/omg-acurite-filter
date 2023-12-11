@@ -4,6 +4,11 @@ import { ValidateRain } from './validateRain';
 import { ValidateMaverickTemp } from './validateMaverickTemp';
 import { DataEntry } from '../dataEntries/dataEntry';
 import { ValidateStrikeCount } from './validateStrikeCount';
+import { IValidatorError } from './validator';
+import msgLog from '../msgLog';
+import configuration from '../configuration';
+
+const log = configuration.log.extend('validator');
 
 const validators = [
   new ValidateAcuriteTemp(),
@@ -21,10 +26,17 @@ const validators = [
  */
 export function is_data_valid(prev_data_array: DataEntry[], new_entry: DataEntry): boolean {
   let result = true;
+  let error: IValidatorError | null = null;
   for (let i = 0; i < validators.length && result; i++) {
     const curValidator = validators[i];
     if (curValidator.canValidate(new_entry.data)) {
-      result = curValidator.validate(prev_data_array, new_entry);
+      [result, error] = curValidator.validate(prev_data_array, new_entry);
+
+      if (!result && error) {
+        const msg = `Invalid ${error.dataType} Received! ${new_entry.get_unique_id()} [prev_value: ${error.prev_value}] [new_value: ${error.new_value}]`;
+        log(msg);
+        msgLog.add(new_entry.get_unique_id(), msg);
+      }
     }
   }
   return result;

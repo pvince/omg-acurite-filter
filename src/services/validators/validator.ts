@@ -1,6 +1,12 @@
 import { DataEntry } from '../dataEntries/dataEntry';
 import { OMGDevice } from '../../mqtt/omg_devices/device.types';
 
+export interface IValidatorError {
+  dataType: string;
+  prev_value: number | null;
+  new_value: number | null;
+}
+
 /**
  * Abstract base Validator class.
  */
@@ -18,6 +24,6 @@ export abstract class Validator {
    * @param new_entry - Newly received data entry
    * @returns - True if the data is valid, false otherwise.
    */
-  public abstract validate(prev_data_array: DataEntry[], new_entry: DataEntry): boolean;
+  public abstract validate(prev_data_array: DataEntry[], new_entry: DataEntry): [boolean, IValidatorError | null];
 }
 

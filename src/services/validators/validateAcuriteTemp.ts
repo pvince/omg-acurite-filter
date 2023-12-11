@@ -1,5 +1,5 @@
 import { KnownType } from '../../mqtt/omg_devices/device';
-import { Validator } from './validator';
+import { IValidatorError, Validator } from './validator';
 import { Acurite5n1MessageType, IAcurite5n1 } from '../../mqtt/omg_devices/acurite.types';
 import { is_range_valid_generic } from './validator.util';
 import configuration from '../configuration';
@@ -20,7 +20,7 @@ const TypesWithTemperature = new Set<KnownType>([
  * @param new_entry - Newly received data entry
  * @returns - True if the data is valid, false otherwise.
  */
-function is_temperature_valid(prev_data_array: DataEntry[], new_entry: DataEntry): boolean {
+function is_temperature_valid(prev_data_array: DataEntry[], new_entry: DataEntry): [boolean, IValidatorError | null] {
   const get_value = (n:  DataEntry | undefined): number | null => (n?.get_temperature() ?? null);
   return is_range_valid_generic(prev_data_array, new_entry,
     'Temperature', get_value, configuration.validTemperatureRange);
@@ -36,7 +36,7 @@ export class ValidateAcuriteTemp implements Validator {
    * @param new_entry - Newly received data entry
    * @returns - True if the data is valid, false otherwise.
    */
-  public validate(prev_data_array: DataEntry[], new_entry: DataEntry): boolean {
+  public validate(prev_data_array: DataEntry[], new_entry: DataEntry): [boolean, IValidatorError | null] {
     return is_temperature_valid(prev_data_array, new_entry);
   }
 

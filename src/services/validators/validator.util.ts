@@ -1,9 +1,7 @@
-import configuration from '../configuration';
 import { DataEntry } from '../dataEntries/dataEntry';
 import _ from 'lodash';
-import msgLog from '../msgLog';
+import { IValidatorError } from './validator';
 
-const log = configuration.log.extend('validator');
 
 /**
  * Optional parameters to the almighty generic range validator
@@ -35,7 +33,7 @@ export function is_range_valid_generic(prev_data_array: DataEntry[], new_entry: 
                                        data_type_name: string,
                                        get_value: (n: DataEntry | undefined) => number | null,
                                        valid_range: number,
-                                       opts: Partial<IRangeOptions> = {}): boolean {
+                                       opts: Partial<IRangeOptions> = {}): [boolean, IValidatorError | null] {
   const new_value = get_value(new_entry);
   const prev_value = get_value(prev_data_array[prev_data_array.length - 1]);
 
@@ -61,11 +59,14 @@ export function is_range_valid_generic(prev_data_array: DataEntry[], new_entry: 
     }
   }
 
+  let error: IValidatorError | null = null;
   if (!isValid) {
-    const msg = `Invalid ${data_type_name} Received! ${new_entry.get_unique_id()} [prev_value: ${prev_value}] [new_value: ${new_value}]`;
-    log(msg);
-    msgLog.add(new_entry.get_unique_id(), msg);
+    error = {
+      dataType: data_type_name,
+      prev_value: prev_value,
+      new_value: new_value
+    };
   }
 
-  return isValid;
+  return [isValid, error];
 }

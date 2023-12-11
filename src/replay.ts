@@ -49,7 +49,7 @@ async function replay(startTimestamp: Date, endTimestamp: Date): Promise<void> {
     ORDER BY timestamp ASC`,
       startTimestamp, endTimestamp);
 
-    log(`Read ${rows.length} rows, min processing time = ${rows.length / MS_IN_MINUTE} minutes.`);
+    log(`Read ${rows.length} rows, min processing time = ${ (rows.length / MS_IN_MINUTE).toFixed(2)} minutes.`);
 
     let i = 0;
     for (const row of rows) {
@@ -80,12 +80,13 @@ function writeStats(): void {
   console.log(JSON.stringify(statistics.getStats(), null, 2));
 }
 
-const startTimestamp = new Date('2023-12-10T08:35:45.900Z');
+const startTimestamp = new Date('2023-12-09T08:35:45.900Z');
 const endTimestamp = new Date('2023-12-10T08:43:29.942Z');
 
 replay(startTimestamp, endTimestamp)
   .then(() => (writeStats()))
   .then(() => stopScheduler())
+  .then(() => sleepPromise(100))
   .catch((err) => {
     log(`Error: ${err}`);
   });

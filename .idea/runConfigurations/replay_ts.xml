@@ -2,7 +2,7 @@
   <configuration default="false" name="replay.ts" type="TypeScriptProgramRunner" factoryName="TypeScript">
     <module name="omg-acurite-filter" />
     <envs>
-      <env name="DEBUG" value="omg*,-*verbose,-*msg-fwd-svc," />
+      <env name="DEBUG" value="omg*,-*verbose,-*msg-fwd-svc" />
     </envs>
     <option name="interpreterRef" value="project" />
     <option name="enabledTsNodeEsmLoader" value="false" />

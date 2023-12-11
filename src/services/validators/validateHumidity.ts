@@ -1,4 +1,4 @@
-import { Validator } from './validator';
+import { IValidatorError, Validator } from './validator';
 import { IOMGDeviceBase, KnownType } from '../../mqtt/omg_devices/device';
 import { Acurite5n1MessageType, IAcurite5n1 } from '../../mqtt/omg_devices/acurite.types';
 import { is_range_valid_generic } from './validator.util';
@@ -19,7 +19,7 @@ const TypesWithHumidity = new Set<KnownType>([
  * @param new_entry - Newly received data entry
  * @returns - True if the data is valid, false otherwise.
  */
-function is_humidity_valid(prev_data_array: DataEntry[], new_entry: DataEntry): boolean {
+function is_humidity_valid(prev_data_array: DataEntry[], new_entry: DataEntry): [boolean, IValidatorError | null] {
   const get_value = (n:  DataEntry | undefined): number | null => (n?.get_humidity() ?? null);
   return is_range_valid_generic(prev_data_array, new_entry,
     'Humidity', get_value, configuration.validHumidityRange);
@@ -35,7 +35,7 @@ export class ValidateHumidity implements Validator {
    * @param new_entry - Newly received data entry
    * @returns - True if the data is valid, false otherwise.
    */
-  public validate(prev_data_array: DataEntry[], new_entry: DataEntry): boolean {
+  public validate(prev_data_array: DataEntry[], new_entry: DataEntry): [boolean, IValidatorError | null] {
     return is_humidity_valid(prev_data_array, new_entry);
   }
 

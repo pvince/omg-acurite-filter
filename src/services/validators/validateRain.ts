@@ -1,5 +1,5 @@
 import { IOMGDeviceBase, KnownType } from '../../mqtt/omg_devices/device';
-import { Validator } from './validator';
+import { IValidatorError, Validator } from './validator';
 import { is_range_valid_generic } from './validator.util';
 import { Acurite5n1MessageType, IAcurite5n1 } from '../../mqtt/omg_devices/acurite.types';
 import { DataEntry } from '../dataEntries/dataEntry';
@@ -17,7 +17,7 @@ export class ValidateRain implements Validator {
    * @param new_entry - Newly received data entry
    * @returns - True if the data is valid, false otherwise.
    */
-  public validate(prev_data_array: DataEntry[], new_entry: DataEntry): boolean {
+  public validate(prev_data_array: DataEntry[], new_entry: DataEntry): [boolean, IValidatorError | null] {
     const get_value = (n:  DataEntry | undefined): number | null => {
       let result: number | null =  null;
       if (n?.data?.model === KnownType.Acurite5n1 ) {
