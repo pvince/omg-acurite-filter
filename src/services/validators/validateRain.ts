@@ -1,5 +1,5 @@
 import { IOMGDeviceBase, KnownType } from '../../mqtt/omg_devices/device';
-import { IValidatorError, Validator } from './validator';
+import { IValidatorError, IValidatorErrorLevel, Validator } from './validator';
 import { is_range_valid_generic } from './validator.util';
 import { Acurite5n1MessageType, IAcurite5n1 } from '../../mqtt/omg_devices/acurite.types';
 import { DataEntry } from '../dataEntries/dataEntry';
@@ -48,7 +48,9 @@ export class ValidateRain implements Validator {
       error = {
         dataType: 'Rain MM',
         new_value: curValue,
-        prev_value: this.previousValue
+        prev_value: this.previousValue,
+        error_level: IValidatorErrorLevel.INFO,
+        message: 'Must get same value twice in a row before it is considered valid.'
       };
       this.previousValue = curValue;
     }

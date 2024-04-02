@@ -4,9 +4,10 @@ import { ValidateRain } from './validateRain';
 import { ValidateMaverickTemp } from './validateMaverickTemp';
 import { DataEntry } from '../dataEntries/dataEntry';
 import { ValidateStrikeCount } from './validateStrikeCount';
-import { IValidatorError, Validator } from './validator';
+import { IValidatorError, IValidatorErrorLevel, Validator } from './validator';
 import msgLog from '../msgLog';
 import configuration from '../configuration';
+import _ from 'lodash';
 
 const log = configuration.log.extend('validator');
 
@@ -44,9 +45,20 @@ export function is_data_valid(prev_data_array: DataEntry[], new_entry: DataEntry
       [result, error] = curValidator.validate(prev_data_array, new_entry);
 
       if (!result && error) {
-        const msg = `Invalid ${error.dataType} Received! ${new_entry.get_unique_id()} [prev_value: ${error.prev_value}] [new_value: ${error.new_value}]`;
-        log(msg);
-        msgLog.add(new_entry.get_unique_id(), msg);
+        let message = 'Unknown error...';
+        if ( error.error_level === IValidatorErrorLevel.INFO) {
+          message = `Discarding ${error.dataType} value for ${new_entry.get_unique_id()}. [prev_value: ${error.prev_value}] [new_value: ${error.new_value}]`;
+        } else {
+          message = `Invalid ${error.dataType} Received! ${new_entry.get_unique_id()} [prev_value: ${error.prev_value}] [new_value: ${error.new_value}]`;
+        }
+
+        if (_.isString(error.message)) {
+          message += ' ';
+          message += error.message;
+        }
+        
+        log(message);
+        msgLog.add(new_entry.get_unique_id(), message);
       }
     }
   }

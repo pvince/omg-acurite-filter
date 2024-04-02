@@ -2,6 +2,24 @@ import { DataEntry } from '../dataEntries/dataEntry';
 import { OMGDevice } from '../../mqtt/omg_devices/device.types';
 
 /**
+ * Error level
+ */
+export enum IValidatorErrorLevel {
+  /**
+   * Info messages are written to the console, but not written to the database
+   */
+  INFO,
+  /**
+   * Reserved for future use.
+   */
+  WARNING,
+  /**
+   * Error messages are written to the console & the database log.
+   */
+  ERROR
+}
+
+/**
  * Validator error interface
  */
 export interface IValidatorError {
@@ -18,6 +36,16 @@ export interface IValidatorError {
    * New (invalid) value.
    */
   new_value: number | null;
+
+  /**
+   * Optional additional validation error message.
+   */
+  message?: string | null;
+
+  /**
+   * Error level. This should default to ERROR
+   */
+  error_level: IValidatorErrorLevel;
 }
 
 /**

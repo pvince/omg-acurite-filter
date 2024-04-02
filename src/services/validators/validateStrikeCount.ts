@@ -1,8 +1,8 @@
-import { IValidatorError, Validator } from './validator';
+import { IValidatorError, IValidatorErrorLevel, Validator } from './validator';
 import { OMGDevice } from '../../mqtt/omg_devices/device.types';
 import { DataEntry } from '../dataEntries/dataEntry';
 import { KnownType } from '../../mqtt/omg_devices/device';
-import {  IAcuriteLightning } from '../../mqtt/omg_devices/acurite.types';
+import { IAcuriteLightning } from '../../mqtt/omg_devices/acurite.types';
 import { is_range_valid_generic } from './validator.util';
 
 // Picking some absurd value, at the moment I don't care if it suddenly shoots up.
@@ -56,7 +56,9 @@ export class ValidateStrikeCount implements Validator {
       error = {
         dataType: 'Strike count',
         new_value: curValue,
-        prev_value:  this.previousValue
+        prev_value:  this.previousValue,
+        error_level: IValidatorErrorLevel.INFO,
+        message: 'Must get same value twice in a row before it is considered valid.'
       };
       this.previousValue = curValue;
     }

@@ -1,6 +1,6 @@
 import { DataEntry } from '../dataEntries/dataEntry';
 import _ from 'lodash';
-import { IValidatorError } from './validator';
+import { IValidatorError, IValidatorErrorLevel } from './validator';
 
 
 /**
@@ -38,6 +38,7 @@ export function is_range_valid_generic(prev_data_array: DataEntry[], new_entry: 
   const prev_value = get_value(prev_data_array[prev_data_array.length - 1]);
 
   let isValid = new_value === null || prev_value === null;
+  let message: string | null = null;
 
   if (new_value === null) {
     isValid = false;
@@ -51,11 +52,19 @@ export function is_range_valid_generic(prev_data_array: DataEntry[], new_entry: 
     const valid_max = prev_value + valid_range;
 
     isValid = new_value >= valid_min && new_value <= valid_max;
+
+    if ( !isValid ) {
+      message = `Valid range ${valid_range}`;
+    }
   }
 
   if (isValid && new_value !== null) {
     if (_.isNumber(opts.minimumTemperature)) {
       isValid = new_value >= opts.minimumTemperature;
+    }
+
+    if (!isValid) {
+      message = `Value below the minimum temperature limit of ${opts.minimumTemperature}`;
     }
   }
 
@@ -64,7 +73,9 @@ export function is_range_valid_generic(prev_data_array: DataEntry[], new_entry: 
     error = {
       dataType: data_type_name,
       prev_value: prev_value,
-      new_value: new_value
+      new_value: new_value,
+      error_level: IValidatorErrorLevel.ERROR,
+      message: message
     };
   }
 
