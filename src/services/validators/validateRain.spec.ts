@@ -37,7 +37,7 @@ export function get_data_entry(fiveInOneOpts: Partial<IAcurite5n1_WindAndRain> =
   return new DataEntry(topic, get_acurite_5in1_rain(fiveInOneOpts));
 }
 
-describe('validaateRain', () => {
+describe('validateRain', () => {
   it('should allow the same value', () => {
     const prev_values = [
       get_data_entry({ rain_mm: 887.5 }),
@@ -75,5 +75,24 @@ describe('validaateRain', () => {
     const validator = new ValidateRain();
     expect(validator.canValidate(new_data.data)).to.be.true;
     expect(validator.validate(prev_values, new_data)[0]).to.be.false;
+  });
+
+  it('should require two same values in a row', () => {
+    const prev_values: DataEntry[] = [ ];
+
+    let new_data = get_data_entry({ rain_mm: 887.9 });
+    const validator = new ValidateRain();
+    expect(validator.canValidate(new_data.data)).to.be.true;
+    expect(validator.validate(prev_values, new_data)[0]).to.be.true;
+
+    prev_values.push(new_data);
+    new_data = get_data_entry({ rain_mm: 888.0 });
+    expect(validator.canValidate(new_data.data)).to.be.true;
+    expect(validator.validate(prev_values, new_data)[0]).to.be.false;
+
+    prev_values.push(new_data);
+    new_data = get_data_entry({ rain_mm: 888.0 });
+    expect(validator.canValidate(new_data.data)).to.be.true;
+    expect(validator.validate(prev_values, new_data)[0]).to.be.true;
   });
 });
