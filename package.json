@@ -6,9 +6,9 @@
   "scripts": {
     "build": "tsc",
     "start": "node -r ts-node/register src/app.ts",
-    "test": "mocha -r ts-node/register src/**/*.spec.ts",
-    "test:coverage": "npx --yes c8 --all --src src --exclude \"src/**/*.spec.ts\" -r text -r text-summary mocha -r ts-node/register \"src/**/*.spec.ts\"",
-    "test:coverage:json": "npx --yes c8 --all --src src --exclude \"src/**/*.spec.ts\" --reporter=json-summary --reporter=json mocha -r ts-node/register \"src/**/*.spec.ts\""
+    "test": "mocha --exit -r ts-node/register src/**/*.spec.ts",
+    "test:coverage": "npx --yes c8 --all --src src --exclude \"src/**/*.spec.ts\" -r text -r text-summary mocha --exit -r ts-node/register \"src/**/*.spec.ts\"",
+    "test:coverage:json": "npx --yes c8 --all --src src --exclude \"src/**/*.spec.ts\" --reporter=json-summary --reporter=json mocha --exit -r ts-node/register \"src/**/*.spec.ts\""
   },
   "dependencies": {
     "app-root-path": "^3.1.0",
