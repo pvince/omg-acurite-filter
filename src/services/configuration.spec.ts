@@ -28,6 +28,16 @@ describe('configuration', () => {
     });
   });
 
+  describe('mqttUser / mqttPass', () => {
+    it('should return UNSET placeholders when mqtt credentials are missing', () => {
+      delete process.env.MQTT_USER;
+      delete process.env.MQTT_PASS;
+
+      expect(configuration.mqttUser).to.equal('<unset>');
+      expect(configuration.mqttPass).to.equal('<unset>');
+    });
+  });
+
   describe('mqttSrcTopic', () => {
     it('should append /# when topic has no trailing slash or hash', () => {
       process.env.MQTT_SRC_TOPIC = 'home/sensors';
@@ -91,6 +101,12 @@ describe('configuration', () => {
       configuration.throttleRateMinutes = 2;
       expect(configuration.throttleRate).to.equal(2 * 60 * 1000);
       configuration.throttleRateMinutes = originalRate;
+    });
+  });
+
+  describe('paths', () => {
+    it('should build dataDir from appDir', () => {
+      expect(configuration.dataDir).to.contain('data');
     });
   });
 });
