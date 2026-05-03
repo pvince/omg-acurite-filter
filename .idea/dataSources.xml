@@ -8,5 +8,29 @@
       <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/data/database.db</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="2023.12.20_database" uuid="c0c001be-4017-4c0f-bbba-7792ec2403a5">
+      <driver-ref>c1e54fbe-f1b2-41e2-9271-26f702dde909</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:C:\Users\ryodo\Documents\Programming\omg-acurite-filter\data\2023.12.20_database.db</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+      <libraries>
+        <library>
+          <url>file://$APPLICATION_CONFIG_DIR$/jdbc-drivers/Xerial SQLiteJDBC/3.43.0/org/xerial/sqlite-jdbc/3.43.0.0/sqlite-jdbc-3.43.0.0.jar</url>
+        </library>
+      </libraries>
+    </data-source>
+    <data-source source="LOCAL" name="2023.12.15_database" uuid="0d7cbada-ca2c-49c3-abbc-15b20fa41f67">
+      <driver-ref>c1e54fbe-f1b2-41e2-9271-26f702dde909</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:C:\Users\ryodo\Documents\Programming\omg-acurite-filter\data\2023.12.15_database.db</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+      <libraries>
+        <library>
+          <url>file://$APPLICATION_CONFIG_DIR$/jdbc-drivers/Xerial SQLiteJDBC/3.43.0/org/xerial/sqlite-jdbc/3.43.0.0/sqlite-jdbc-3.43.0.0.jar</url>
+        </library>
+      </libraries>
+    </data-source>
   </component>
 </project>

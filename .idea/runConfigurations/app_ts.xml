@@ -5,6 +5,7 @@
       <env name="DEBUG" value="omg*,-*verbose" />
     </envs>
     <option name="interpreterRef" value="project" />
+    <option name="tsnodePackageRef" value="~\Documents\Programming\omg-acurite-filter\node_modules\ts-node" />
     <option name="enabledTsNodeEsmLoader" value="false" />
     <option name="interpreterOptions" value="" />
     <option name="workingDirectory" value="" />
