@@ -155,6 +155,14 @@ class SubscriptionCache {
   }
 
   /**
+   * Clears all subscriptions from the cache. Used for test isolation.
+   */
+  public clear(): void {
+    this.cacheMap.clear();
+    this.wildcardTopicCount = 0;
+  }
+
+  /**
    * Are we currently caching any wildcard topics?
    * @returns - True if we are caching wildcard topics.
    * @private
@@ -188,6 +196,16 @@ class SubscriptionCache {
 const subscriptionCache = new SubscriptionCache();
 
 /**
+ * Replaceable dependencies for test injection. Swapping these in tests avoids
+ * mutating the sealed ES module namespace object for the mqtt package.
+ * @internal
+ */
+export const _deps = {
+  /** Wraps mqtt.connectAsync so tests can substitute a mock. */
+  connectAsync: (host: string, opts?: IClientOptions): Promise<MqttClient> => mqtt.connectAsync(host, opts),
+};
+
+/**
  * Retrieves the current MQTT Client.
  * @returns - Current MQTT client
  * @throws {Error} Throws an error if the client is not initialized by {@link startClient}
@@ -208,7 +226,7 @@ export async function startClient(host: string, opts?: IClientOptions): Promise<
   try {
     // Connect to the MQTT broker
     log('Starting mqtt client connecting to %s', host);
-    client = await mqtt.connectAsync(host, opts);
+    client = await _deps.connectAsync(host, opts);
     log('mqtt client started!');
 
     // Listen for global errors
@@ -298,4 +316,13 @@ export async function clearTopic(topic: string): Promise<void> {
  */
 export function isConnected(): boolean {
   return client?.connected ?? false;
+}
+
+/**
+ * Resets module-level state for test isolation. Not intended for production use.
+ * @internal
+ */
+export function _resetForTesting(): void {
+  client = null;
+  subscriptionCache.clear();
 }
