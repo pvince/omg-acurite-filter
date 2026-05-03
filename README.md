@@ -8,6 +8,7 @@ Additional docs:
 - [docs/http-api.md](docs/http-api.md) for REST endpoints.
 - [AGENTS.md](AGENTS.md) for AI-agent workflow and repo conventions.
 
+
 ## Build
 
 1. Install dependencies with `npm install`.
@@ -17,6 +18,8 @@ Additional docs:
 
 1. Run the full test suite with `npm test`.
 2. Run one spec with `npx mocha -r ts-node/register path/to/file.spec.ts`.
+3. Run line-level all-source coverage with `npm run test:coverage`.
+4. Generate machine-readable coverage artifacts with `npm run test:coverage:json`.
 
 ## Install And Configure
 

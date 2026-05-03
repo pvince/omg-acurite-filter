@@ -7,7 +7,7 @@ import statistics from '../services/statistics';
  * @param req - Incoming Request
  * @param res - Outgoing response
  */
-function handleStats(req: Request, res: Response): void {
+export function handleStats(req: Request, res: Response): void {
   res.json(statistics.getStats());
   res.send();
 }
@@ -17,7 +17,7 @@ function handleStats(req: Request, res: Response): void {
  * @param req - Incoming Request
  * @param res - Outgoing response
  */
-function handleForwarderStats(req: Request, res: Response): void {
+export function handleForwarderStats(req: Request, res: Response): void {
   res.json(statistics.forwarderStats());
   res.send();
 }
@@ -26,7 +26,7 @@ function handleForwarderStats(req: Request, res: Response): void {
  * @param req - Incoming Request
  * @param res - Outgoing response
  */
-function handleMqttStats(req: Request, res: Response): void {
+export function handleMqttStats(req: Request, res: Response): void {
   res.json(statistics.mqttStats());
   res.send();
 }
@@ -36,7 +36,7 @@ function handleMqttStats(req: Request, res: Response): void {
  * @param req - Incoming Request
  * @param res - Outgoing response
  */
-function handleCacheStats(req: Request, res: Response): void {
+export function handleCacheStats(req: Request, res: Response): void {
   res.json(statistics.cacheStats());
   res.send();
 }
@@ -46,7 +46,7 @@ function handleCacheStats(req: Request, res: Response): void {
  * @param req - Incoming Request
  * @param res - Outgoing response
  */
-function handleAppStats(req: Request, res: Response): void {
+export function handleAppStats(req: Request, res: Response): void {
   res.json(statistics.appStats());
   res.send();
 }

@@ -50,6 +50,8 @@ async function handleMsgsByDeviceID(req: Request, res: Response): Promise<void> 
   }
 }
 
+export { handleMsgsByDeviceID };
+
 
 const dataRouter = Router();
 

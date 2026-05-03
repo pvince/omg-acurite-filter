@@ -7,7 +7,7 @@ import msgLog from '../services/msgLog';
  * @param req - Incoming Request
  * @param res - Outgoing response
  */
-function handleLogs(req: Request, res: Response): void {
+export function handleLogs(req: Request, res: Response): void {
   res.json(msgLog.getMsgs());
   res.send();
 }

@@ -27,7 +27,7 @@ interface IForwarderJob {
  * @param job - Job from the message forwarding service
  * @returns - New IForwarderJob based on active jobs.
  */
-function buildForwarder(device_id: string, job: Job): IForwarderJob {
+export function buildForwarder(device_id: string, job: Job): IForwarderJob {
   return {
     id: device_id,
     status: job.getStatus(),
@@ -39,7 +39,7 @@ function buildForwarder(device_id: string, job: Job): IForwarderJob {
  * Gathers active job data from the message forwarding service.
  * @returns - List of IJobs we can send to the caller
  */
-function gatherForwarders(): IForwarderJob[] {
+export function gatherForwarders(): IForwarderJob[] {
   const result: IForwarderJob[] = [];
   for (const [device_id, job] of messageForwardingService.jobEntries()) {
     result.push(buildForwarder(device_id, job));
@@ -52,7 +52,7 @@ function gatherForwarders(): IForwarderJob[] {
  * @param req - Incoming Request
  * @param res - Outgoing response
  */
-function handleForwarders(req: Request, res: Response): void {
+export function handleForwarders(req: Request, res: Response): void {
   res.json(gatherForwarders());
   res.send();
 }

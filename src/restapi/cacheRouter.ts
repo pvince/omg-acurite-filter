@@ -35,7 +35,7 @@ interface IAPICacheSummaryItem {
  * Build up the data we are going to return for the REST API for the /data API endpoint
  * @returns - Array that is a summary of all the data held in cache.
  */
-function gatherDataCacheItems(): IAPICacheSummaryItem[] {
+export function gatherDataCacheItems(): IAPICacheSummaryItem[] {
   const result: IAPICacheSummaryItem[] = [];
   for (const [device_id, dataEntryArray] of dataCache.getEntries()) {
     const oldest: Date | null =  dataEntryArray[0]?.timestamp ?? null;
@@ -60,7 +60,7 @@ function gatherDataCacheItems(): IAPICacheSummaryItem[] {
  * @param req - Incoming Request
  * @param res - Outgoing response
  */
-function handleCache(req: Request, res: Response): void {
+export function handleCache(req: Request, res: Response): void {
   res.json(gatherDataCacheItems());
   res.send();
 }
@@ -70,7 +70,7 @@ function handleCache(req: Request, res: Response): void {
  * @param req - Incoming request.
  * @param res - Outgoing response.
  */
-function handleCacheEntry(req: Request, res: Response): void {
+export function handleCacheEntry(req: Request, res: Response): void {
   const id = req.params.id ?? null;
   let entries: DataEntry[] | null = null;
   if (id !== null) {
@@ -89,7 +89,7 @@ function handleCacheEntry(req: Request, res: Response): void {
  * @param req - Incoming request
  * @param res - Outgoing response
  */
-function handleCleanup(req: Request, res: Response): void {
+export function handleCleanup(req: Request, res: Response): void {
   const results = {
     initialCount: dataCache.count,
     deleted: dataCache.cleanup(),

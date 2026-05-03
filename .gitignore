@@ -1,6 +1,7 @@
 .env
 /dist
 /logs
+/coverage
 /node_modules
 /configuration.json
 /certs/ssl.cert
