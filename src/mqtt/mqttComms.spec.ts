@@ -25,6 +25,9 @@ class MockMqttClient extends EventEmitter {
   /** Whether endAsync has been invoked. */
   public endAsyncCalled = false;
 
+  /** Total number of times endAsync has been invoked. */
+  public endAsyncCallCount = 0;
+
   /** @param topic - topic to subscribe to */
   public async subscribeAsync(topic: string): Promise<void> {
     this.subscribeAsyncCalls.push(topic);
@@ -47,6 +50,7 @@ class MockMqttClient extends EventEmitter {
   /** Marks client as disconnected. */
   public async endAsync(): Promise<void> {
     this.endAsyncCalled = true;
+    this.endAsyncCallCount++;
     this.connected = false;
   }
 }
@@ -92,6 +96,34 @@ describe('mqttComms', () => {
       await mqttComms.startClient('mqtt://localhost');
       await mqttComms.stopClient();
       expect(mockClient.endAsyncCalled).to.be.true;
+    });
+
+    it('should clear the client after stopping so repeated shutdown is safe', async () => {
+      await mqttComms.startClient('mqtt://localhost');
+
+      await mqttComms.stopClient();
+      await mqttComms.stopClient();
+
+      expect(mockClient.endAsyncCallCount).to.equal(1);
+      expect(mqttComms.isConnected()).to.be.false;
+    });
+
+    it('should keep the client when shutdown fails so teardown can retry', async () => {
+      await mqttComms.startClient('mqtt://localhost');
+      mockClient.endAsync = async () => {
+        mockClient.endAsyncCallCount++;
+        throw new Error('shutdown failed');
+      };
+
+      try {
+        await mqttComms.stopClient();
+        expect.fail('Expected stopClient to throw');
+      } catch (err) {
+        expect((err as Error).message).to.equal('shutdown failed');
+      }
+
+      expect(mqttComms.isConnected()).to.be.true;
+      expect(mockClient.endAsyncCallCount).to.equal(1);
     });
 
     it('should not throw when no client is initialized', async () => {

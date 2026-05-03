@@ -261,7 +261,14 @@ export async function startClient(host: string, opts?: IClientOptions): Promise<
  */
 export async function stopClient(): Promise<void> {
   if (client) {
-    await client.endAsync();
+    const currentClient = client;
+    try {
+      await currentClient.endAsync();
+      client = null;
+    } catch (err) {
+      client = currentClient;
+      throw err;
+    }
   }
 }
 
