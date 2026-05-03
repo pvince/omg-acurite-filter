@@ -19,5 +19,6 @@ export function getScheduler(): ToadScheduler {
 export function stopScheduler(): void {
   if (scheduler !== null) {
     scheduler.stop();
+    scheduler = null;
   }
 }

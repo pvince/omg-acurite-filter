@@ -20,7 +20,7 @@ These instructions apply to the whole repository. Keep them short, follow them e
 - Install dependencies: `npm install`
 - Create local env file: copy [.env.example](.env.example) to `.env` and fill MQTT values.
 - Run all tests: `npm test`
-- Run one spec: `npx mocha -r ts-node/register path/to/file.spec.ts`
+- Run one spec: `npx mocha path/to/file.spec.ts`
 - Build and type-check: `npm run build`
 - Start the service: `npm start`
 

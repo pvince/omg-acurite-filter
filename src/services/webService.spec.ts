@@ -1,14 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { expect } from 'chai';
 import { describe, it, afterEach } from 'mocha';
-import { initializeExpress, startWebService } from './webService';
+import { initializeExpress, startWebService, stopWebService } from './webService';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const http = require('http') as typeof import('http');
 const originalCreateServer = http.createServer;
 
 describe('webService', () => {
-  afterEach(() => {
+  afterEach(async () => {
+    await stopWebService();
     http.createServer = originalCreateServer;
   });
 
@@ -68,10 +69,15 @@ describe('webService', () => {
   it('should start http server and resolve with express app', async () => {
     let listenedPort = 0;
     http.createServer = (((app: any) => ({
+      close: (closeCb?: (err?: Error) => void) => {
+        closeCb?.();
+      },
+      once: () => undefined,
+      off: () => undefined,
       listen: (port: number, cb: () => void) => {
         listenedPort = port;
         cb();
-        return { close: () => undefined };
+        return undefined;
       },
       app
     })) as unknown) as typeof http.createServer;
@@ -80,5 +86,63 @@ describe('webService', () => {
 
     expect(app).to.not.equal(undefined);
     expect(listenedPort).to.equal(2998);
+  });
+
+  it('should close the active http server during shutdown', async () => {
+    let closeCount = 0;
+    http.createServer = (((app: any) => ({
+      close: (closeCb?: (err?: Error) => void) => {
+        closeCount++;
+        closeCb?.();
+      },
+      once: () => undefined,
+      off: () => undefined,
+      listen: (_port: number, cb: () => void) => {
+        cb();
+        return undefined;
+      },
+      app
+    })) as unknown) as typeof http.createServer;
+
+    await startWebService();
+    await stopWebService();
+
+    expect(closeCount).to.equal(1);
+  });
+
+  it('should preserve the active server when shutdown fails', async () => {
+    let closeCount = 0;
+    let shouldFailClose = true;
+    http.createServer = (((app: any) => ({
+      close: (closeCb?: (err?: Error) => void) => {
+        closeCount++;
+        if (shouldFailClose) {
+          closeCb?.(new Error('close failed'));
+        } else {
+          closeCb?.();
+        }
+      },
+      once: () => undefined,
+      off: () => undefined,
+      listen: (_port: number, cb: () => void) => {
+        cb();
+        return undefined;
+      },
+      app
+    })) as unknown) as typeof http.createServer;
+
+    await startWebService();
+
+    try {
+      await stopWebService();
+      expect.fail('Expected stopWebService to throw');
+    } catch (err) {
+      expect((err as Error).message).to.equal('close failed');
+    }
+
+    shouldFailClose = false;
+    await stopWebService();
+
+    expect(closeCount).to.equal(2);
   });
 });

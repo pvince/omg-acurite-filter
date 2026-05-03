@@ -50,6 +50,18 @@ class DataStore {
     private database: Database | null = null;
 
     /**
+     * Scheduled purge job for stale MQTT rows.
+     * @private
+     */
+    private purgeJob: SimpleIntervalJob | null = null;
+
+    /**
+     * Tracks an in-flight purge so close() can wait for SQLite work to finish.
+     * @private
+     */
+    private purgePromise: Promise<void> | null = null;
+
+    /**
      * Initialize the dataStore. Must be called before any other functions.
      */
     public async initialize():  Promise<void> {
@@ -57,14 +69,24 @@ class DataStore {
             this.database = await loadDB();
 
             if (!configuration.isReplayMode) {
-                const taskFunc = async (): Promise<void>=> (this.purgeOldMsgs());
+                const taskFunc = async (): Promise<void> => {
+                    const activePurge = this.purgeOldMsgs();
+                    this.purgePromise = activePurge;
+                    try {
+                        await activePurge;
+                    } finally {
+                        if (this.purgePromise === activePurge) {
+                            this.purgePromise = null;
+                        }
+                    }
+                };
                 const task = new AsyncTask('purgeOldMsgs', taskFunc, (err) => {
                     log(`Error: purgeOldMsgs - ${err}`);
                 });
-                const job = new SimpleIntervalJob(
+                this.purgeJob = new SimpleIntervalJob(
                   { days: PURGE_FREQUENCY_IN_DAYS, runImmediately: true },
                   task);
-                getScheduler().addSimpleIntervalJob(job);
+                getScheduler().addSimpleIntervalJob(this.purgeJob);
             }
         } else {
             log('Error: initialize called,  but database is already initialized.');
@@ -75,6 +97,11 @@ class DataStore {
      * Close the datastore database handle, if initialized.
      */
     public async close(): Promise<void> {
+        this.purgeJob?.stop();
+        this.purgeJob = null;
+        await this.purgePromise;
+        this.purgePromise = null;
+
         if (this.database) {
             await this.database.close();
             this.database = null;

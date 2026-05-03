@@ -7,6 +7,9 @@ import { StatusCodes } from 'http-status-codes';
 import { translateError } from '../restapi/apiError';
 
 const log = configuration.log.extend('restapi');
+let server: http.Server | null = null;
+let serverApp: Express | null = null;
+let startupPromise: Promise<Express> | null = null;
 
 /**
  * Initializes the express app & returns it.
@@ -41,13 +44,75 @@ export function initializeExpress(): Express {
  * @returns - Promise that resolves to the Express app.
  */
 export async function startWebService(): Promise<Express> {
+  if (server !== null && serverApp !== null) {
+    return serverApp;
+  }
+
+  if (startupPromise !== null) {
+    return startupPromise;
+  }
+
   const app = initializeExpress();
 
-  return new Promise<Express>((resolve, reject) => {
-    http.createServer(app).listen(configuration.httpPort, () => {
+  const httpServer = http.createServer(app);
+  server = httpServer;
+
+  const pendingStartup = new Promise<Express>((resolve, reject) => {
+    const onError = (err: Error): void => {
+      httpServer.off('error', onError);
+      server = null;
+      serverApp = null;
+      reject(err);
+    };
+
+    httpServer.once('error', onError);
+    httpServer.listen(configuration.httpPort, () => {
+      httpServer.off('error', onError);
+      serverApp = app;
       log('Started listening for HTTP requests on port %d', configuration.httpPort);
       resolve(app);
     });
   });
 
+  let trackedStartup: Promise<Express>;
+  trackedStartup = pendingStartup.finally(() => {
+    if (startupPromise === trackedStartup) {
+      startupPromise = null;
+    }
+  });
+  startupPromise = trackedStartup;
+  return trackedStartup;
+
+}
+
+/**
+ * Stops the REST API server if it is running.
+ * @returns - Promise that resolves once shutdown completes.
+ */
+export async function stopWebService(): Promise<void> {
+  if (server === null) {
+    serverApp = null;
+    return;
+  }
+
+  const httpServer = server;
+  const app = serverApp;
+  server = null;
+  serverApp = null;
+
+  try {
+    await new Promise<void>((resolve, reject) => {
+      httpServer.close((err?: Error) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+  } catch (err) {
+    server = httpServer;
+    serverApp = app;
+    throw err;
+  }
 }
