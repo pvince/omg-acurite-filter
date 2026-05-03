@@ -1,12 +1,7 @@
 /* eslint-disable @typescript-eslint/no-magic-numbers */
 import configuration from './services/configuration';
-configuration.isReplayMode = true;
-configuration.throttleRateMinutes = 0.01;
-
-
 import { IDataModelMqttMsg } from './services/database/database.types';
 import { IMQTTMessage } from './mqtt/IMQTTMessage';
-import { processTopic } from './app';
 import dataStore from './services/database/dataStore';
 import { loadDB } from './services/database/database';
 import statistics from './services/statistics';
@@ -20,14 +15,19 @@ const log = configuration.log.extend('replay');
  * @param mqttMsgDataModel - Log line to process
  */
 async function processLogLine(mqttMsgDataModel: IDataModelMqttMsg ): Promise<void> {
+  // Delay loading app so importing replay.ts does not trigger app startup side effects.
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const appModule = require('./app') as typeof import('./app');
   const mqtt_msg: IMQTTMessage = JSON.parse(mqttMsgDataModel.msg);
   const topic = mqtt_msg.topic;
   const message = mqtt_msg.message;
   const buffer = Buffer.from(message, 'utf8');
 
   configuration.dateOverride = new Date(mqttMsgDataModel.timestamp);
-  processTopic(topic, buffer);
+  appModule.processTopic(topic, buffer);
 }
+
+export { processLogLine };
 
 /**
  * Replay the log from the specified timestamp.
@@ -73,6 +73,8 @@ async function replay(startTimestamp: Date, endTimestamp: Date): Promise<void> {
 
 }
 
+export { replay };
+
 /**
  * Write out the statistics
  */
@@ -80,13 +82,39 @@ function writeStats(): void {
   console.log(JSON.stringify(statistics.getStats(), null, 2));
 }
 
-const startTimestamp = new Date('2023-12-09T08:35:45.900Z');
-const endTimestamp = new Date('2023-12-10T08:43:29.942Z');
+export { writeStats };
 
-replay(startTimestamp, endTimestamp)
-  .then(() => (writeStats()))
-  .then(() => stopScheduler())
-  .then(() => sleepPromise(100))
-  .catch((err) => {
-    log(`Error: ${err}`);
-  });
+/**
+ * Run a replay cycle and emit final statistics.
+ * @param startTimestamp - Optional start timestamp for replay window.
+ * @param endTimestamp - Optional end timestamp for replay window.
+ */
+export async function runReplay(
+  startTimestamp = new Date('2023-12-09T08:35:45.900Z'),
+  endTimestamp = new Date('2023-12-10T08:43:29.942Z')
+): Promise<void> {
+  const previousReplayMode = configuration.isReplayMode;
+  const previousThrottleRate = configuration.throttleRateMinutes;
+  const previousDateOverride = configuration.dateOverride;
+  configuration.isReplayMode = true;
+  configuration.throttleRateMinutes = 0.01;
+
+  try {
+    await replay(startTimestamp, endTimestamp);
+    writeStats();
+    await sleepPromise(100);
+  } finally {
+    await dataStore.close();
+    stopScheduler();
+    configuration.dateOverride = previousDateOverride;
+    configuration.isReplayMode = previousReplayMode;
+    configuration.throttleRateMinutes = previousThrottleRate;
+  }
+}
+
+if (require.main === module) {
+  runReplay()
+    .catch((err) => {
+      log(`Error: ${err}`);
+    });
+}
