@@ -72,6 +72,16 @@ class DataStore {
     }
 
     /**
+     * Close the datastore database handle, if initialized.
+     */
+    public async close(): Promise<void> {
+        if (this.database) {
+            await this.database.close();
+            this.database = null;
+        }
+    }
+
+    /**
      * Add a message to the log.
      * @param msg - Msg to log
      * @returns - Promise that resolves when finished.
