@@ -1,64 +1,43 @@
-# Background
+# omg-acurite-filter
 
-# Requirements
-* Gather in MQTT messages for specific types of messages.
-* Save the last X minutes of data.
-* Compare the most recent data to the last X minutes of data. If the data seems 'unusual' discard the message.
-  * Define "unusual"
-    * Simple: 
-      * Temperature is + / - 2.5 C of the last received temperature
-      * Humidity is + / - 5% of the last received temperature.
-      * Each time we receive a reading, we discard any values more than X minutes old.
-      * If we have no saved readings, then the reading is automatically valid.
-      * This means that if...
-        * We don't typically receive a reading, it will automatically be considered valid. Mixed bag here. This also means
-          that weak signals (the most likely to be corrupt) will be more likely to be forwarded
-        * If we receive a reading that seems wacky (but is actually valid) it will auto-correct after 5 minutes.
-        * If we log a wacky value as the 'valid' reading, it will auto-correct after 5 minutes.
-* Every Y seconds, send the 'latest' valid data reading 
-  * Only send _new_ readings though, if we already sent it, flag it as such.
+Listens to OpenMQTTGateway MQTT messages, filters suspicious weather-sensor readings, caches recent valid data, forwards approved payloads back to MQTT, and exposes runtime state over HTTP.
 
-# Enhancement ideas
-* Monitor memory usage. If it goes beyond X, auto-restart the service
-* Save stats:
-  * Invalid Readings Stats
-    * Prev reading - Invalid Reading
-    * Date//Time of bad reading
-    * Age out individual readings?
-    * Total # per device per receiver
-* REST API?
-  * Stats?
-* Publish statistic information to Home Assistant via MQTT & MQTT self discovery.
-* Reverse route MQTT messages from the forwarded destination back to the original sources.
-* Forward OMG device information & reverse route MQTT controll messages back to the OMG devices.
-* Setup PM2 service on VM
+Additional docs:
 
+- [docs/architecture.md](docs/architecture.md) for component boundaries and message flow.
+- [docs/http-api.md](docs/http-api.md) for REST endpoints.
+- [AGENTS.md](AGENTS.md) for AI-agent workflow and repo conventions.
 
-# Other validation ideas
-* Many times we receive multiple copies of the same message, each from a different receiver.
-  * The messages arrive nearly simultaneously. 
-    * Maybe we store any messages received in the last X ms into a special buffer?
-    * We could look back in the buffer for messages received in the last X milliseconds.
-    * When sending messages via our scheduler, we could ignore very recently received messages to allow msg validation
-      to fully run, but this would complicate the send logic.
-  * All messages in the buffer should be equal. 
-    * If we have 3+ messages, we can throw out the odd one.
-    * What do we do when we have 2 messages, and one doesn't agree?
-    * `[]` = All message buffer
-    * `()` = Within last 100 ms
-    * `{t-Xs}` = Message received X seconds ago
-    * `[ 66 {t-15s}, 66 {t-15s}, 66.1 {t-10s}, (63.6, 66.1) ]`
-      * This looks suspicious, `0 → 0.1 → -2.5 → 2.5`
-      * We could:
-        * Drop both messages? Would only require 2 receivers to do error elimination
-          * 63.6
-          * 63.6, 66.1
-          * ~~63.6, 66.1~~ [discard 2]
-        * Wait until we have 3 simultaneous messages? Would require 3 receivers, but would be error correction.
-          * 63.6
-          * 63.6, 66.1
-          * 63.6, 66.1, 66.1
-          * ~~63.6~~, 66.1, 66.1
-* Determine a stddev for received messages in the last X time frame. If newly received message is outside that stdev +
-  some error factor (smaller than the current one) then consider the message invalid.
+## Build
+
+1. Install dependencies with `npm install`.
+2. Compile and type-check with `npm run build`.
+
+## Test
+
+1. Run the full test suite with `npm test`.
+2. Run one spec with `npx mocha -r ts-node/register path/to/file.spec.ts`.
+
+## Install And Configure
+
+1. Copy [.env.example](.env.example) to `.env`.
+   PowerShell: `Copy-Item .env.example .env`
+2. Set the required MQTT environment variables:
+   - `MQTT_HOST`: broker URL such as `mqtt://hostname`
+   - `MQTT_USER`: broker username
+   - `MQTT_PASS`: broker password
+   - `MQTT_SRC_TOPIC`: source topic prefix or wildcard pattern without a trailing `/#`
+   - `MQTT_DST_TOPIC`: destination topic prefix or wildcard pattern without a trailing `/#`
+3. Start the service with `npm start`.
+4. Query the HTTP API on port `2998` after startup.
+
+Notes:
+
+- Runtime configuration is loaded from `.env` by [src/services/configuration.ts](src/services/configuration.ts).
+- `MQTT_SRC_TOPIC` and `MQTT_DST_TOPIC` are normalized to end in `/#` automatically.
+- MQTT message history is stored in the local SQLite database under the `data` directory.
+
+## Support
+
+Feature requests and bug reports belong in GitHub Issues, not in this README.
 
