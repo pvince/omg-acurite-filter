@@ -12,7 +12,7 @@ const log = configuration.log.extend('restapi');
  * Initializes the express app & returns it.
  * @returns - Initialized express app
  */
-function initializeExpress(): Express {
+export function initializeExpress(): Express {
   log('Initializing web service...');
 
   const app = express();
