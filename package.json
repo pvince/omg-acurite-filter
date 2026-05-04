@@ -4,7 +4,7 @@
   "author": "Paul Vincent",
   "description": "Listens for data from OpenMQTTGateway and relays it back to MQTT after filtering out suspect data.",
   "engines": {
-    "node": ">=18.2.0"
+    "node": ">=20.17.0"
   },
   "scripts": {
     "build": "tsc",
@@ -28,7 +28,7 @@
     "lodash": "^4.18.1",
     "mqtt": "^5.15.1",
     "sqlite": "^5.1.1",
-    "sqlite3": "^5.1.7",
+    "sqlite3": "^6.0.1",
     "toad-scheduler": "^4.0.1"
   },
   "devDependencies": {
