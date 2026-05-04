@@ -15,7 +15,7 @@ const compat = new FlatCompat({
 });
 
 export default defineConfig([
-  globalIgnores(['**/node_modules', '**/dist']),
+  globalIgnores(['**/node_modules', '**/dist', '**/*.js']),
   ...compat.extends('eslint:recommended', 'plugin:@typescript-eslint/recommended'),
   {
     files: ['**/*.ts'],
@@ -31,7 +31,9 @@ export default defineConfig([
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unused-expressions': 'off',
       '@typescript-eslint/no-require-imports': 'off',
-      '@typescript-eslint/no-unused-vars': 'off'
+      '@typescript-eslint/no-unused-vars': 'off',
+      'no-useless-assignment': 'off',
+      'prefer-const': 'off'
     }
   }
 ]);

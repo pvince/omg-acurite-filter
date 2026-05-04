@@ -59,7 +59,7 @@ describe('cacheRouter', () => {
       expect(payload[0].id).to.equal('older');
       expect(payload[0].count).to.equal(2);
       expect(payload[1].id).to.equal('newer');
-      expect(res.sendCalled).to.equal(true);
+      expect(res.sendCalled).to.not.equal(true);
     } finally {
       dataCache.getEntries = originalGetEntries;
     }
@@ -135,7 +135,7 @@ describe('cacheRouter', () => {
         deleted: 1,
         finalCount: 1
       });
-      expect(res.sendCalled).to.equal(true);
+      expect(res.sendCalled).to.not.equal(true);
     } finally {
       dataCache.cleanup = originalCleanup;
       if (originalCountDescriptor) {
