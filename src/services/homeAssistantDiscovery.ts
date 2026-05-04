@@ -1,6 +1,7 @@
 import { IClientPublishOptions } from 'mqtt';
 import * as mqttComms from '../mqtt/mqttComms';
 import { forwardTopic } from '../mqtt/mqtt.util';
+import { KnownType } from '../mqtt/omg_devices/device';
 import { DataEntry } from './dataEntries/dataEntry';
 import configuration from './configuration';
 
@@ -116,6 +117,18 @@ const METRIC_DISCOVERY_CONFIGS: ReadonlyArray<IMetricDiscoveryConfig> = [
     deviceClass: 'humidity',
     unitOfMeasurement: '%',
     label: 'Humidity'
+  },
+  {
+    field: 'temperature_1_C',
+    deviceClass: 'temperature',
+    unitOfMeasurement: '°C',
+    label: 'Probe 1 Temperature'
+  },
+  {
+    field: 'temperature_2_C',
+    deviceClass: 'temperature',
+    unitOfMeasurement: '°C',
+    label: 'Probe 2 Temperature'
   }
 ];
 
@@ -147,8 +160,13 @@ class HomeAssistantDiscoveryService {
         continue;
       }
 
-      await _deps.publish(discoveryMessage.topic, discoveryMessage.payload, DISCOVERY_PUBLISH_OPTIONS);
       this.sentUniqueIds.add(discoveryMessage.uniqueId);
+      try {
+        await _deps.publish(discoveryMessage.topic, discoveryMessage.payload, DISCOVERY_PUBLISH_OPTIONS);
+      } catch (err) {
+        this.sentUniqueIds.delete(discoveryMessage.uniqueId);
+        throw err;
+      }
     }
   }
 
@@ -185,13 +203,9 @@ class HomeAssistantDiscoveryService {
     const deviceName = this.buildDeviceName(dataEntry);
 
     const discoveryMessages: IDiscoveryMessage[] = [];
-    const valueByMetric = new Map<string, number | null>([
-      ['temperature_C', dataEntry.get_temperature()],
-      ['humidity', dataEntry.get_humidity()]
-    ]);
 
     for (const metricConfig of METRIC_DISCOVERY_CONFIGS) {
-      if (valueByMetric.get(metricConfig.field) === null) {
+      if (!this.hasSupportedMetric(dataEntry, metricConfig.field)) {
         continue;
       }
 
@@ -217,6 +231,41 @@ class HomeAssistantDiscoveryService {
     }
 
     return discoveryMessages;
+  }
+
+  /**
+   * Checks if a metric is supported and present for the provided payload.
+   * @param dataEntry - Parsed sensor report.
+   * @param fieldName - Metric field name.
+   * @returns - True when the metric should emit discovery.
+   */
+  private hasSupportedMetric(dataEntry: DataEntry, fieldName: string): boolean {
+    switch (fieldName) {
+    case 'temperature_C':
+      return dataEntry.get_temperature() !== null;
+    case 'humidity':
+      return dataEntry.get_humidity() !== null;
+    case 'temperature_1_C':
+    case 'temperature_2_C':
+      return dataEntry.data.model === KnownType.MaverickET73 && this.readNumericField(dataEntry, fieldName) !== null;
+    default:
+      return false;
+    }
+  }
+
+  /**
+   * Read a numeric metric field from the raw message payload.
+   * @param dataEntry - Parsed sensor report.
+   * @param fieldName - Field to read.
+   * @returns - Numeric value when present, otherwise null.
+   */
+  private readNumericField(dataEntry: DataEntry, fieldName: string): number | null {
+    const payload = dataEntry.data as unknown as Record<string, unknown>;
+    const value = payload[fieldName];
+    if (typeof value !== 'number' || Number.isNaN(value)) {
+      return null;
+    }
+    return value;
   }
 
   /**
