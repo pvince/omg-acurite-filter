@@ -102,3 +102,41 @@ describe('app processTopic', () => {
     expect(mqttStats.received.unparseable).to.equal(beforeUnparseable + 1);
   });
 });
+
+describe('app startup', () => {
+  const originalReplayMode = configuration.isReplayMode;
+
+  afterEach(() => {
+    configuration.isReplayMode = originalReplayMode;
+  });
+
+  it('should initialize discovery before source topic subscription', async () => {
+    const app = requireApp();
+    const originalDeps = { ...app._deps };
+    const callOrder: string[] = [];
+
+    app._deps.initializeDataStore = async () => {
+      callOrder.push('dataStore');
+    };
+    app._deps.startMQTT = async () => {
+      callOrder.push('mqtt');
+    };
+    app._deps.initializeDiscovery = async () => {
+      callOrder.push('discovery');
+    };
+    app._deps.subscribe = async () => {
+      callOrder.push('subscribe');
+    };
+    app._deps.startWebService = async () => {
+      callOrder.push('web');
+    };
+
+    try {
+      await app.startup();
+    } finally {
+      Object.assign(app._deps, originalDeps);
+    }
+
+    expect(callOrder).to.deep.equal(['dataStore', 'mqtt', 'discovery', 'subscribe', 'web']);
+  });
+});
