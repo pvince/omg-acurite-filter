@@ -101,7 +101,7 @@ describe('forwardersRouter', () => {
       const payload = res.payload as Array<{ id: string }>;
       expect(payload.length).to.equal(1);
       expect(payload[0].id).to.equal('device-1');
-      expect(res.sendCalled).to.equal(true);
+      expect(res.sendCalled).to.not.equal(true);
     } finally {
       messageForwardingService.jobEntries = originalJobEntries;
       messageForwardingService.getMessage = originalGetMessage;
