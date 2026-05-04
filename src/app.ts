@@ -2,6 +2,7 @@
 import * as mqttComms from './mqtt/mqttComms';
 import configuration from './services/configuration';
 import dataCache from './services/dataCache';
+import { homeAssistantDiscoveryService } from './services/homeAssistantDiscovery';
 import { messageForwardingService } from './services/messageForwardingService';
 import { buildDataEntry } from './services/dataEntries/dataEntry';
 import { dumpMessage } from './mqtt/dumper';
@@ -63,10 +64,17 @@ export function processTopic(topic: string, message: Buffer): void {
         dumpMessage(msg);
       }
 
-      logVerbose(`[${topic}] => IOMGDevice: ${dataEntry.get_unique_id()}`);
+      const uniqueId = dataEntry.get_unique_id();
+      logVerbose(`[${topic}] => IOMGDevice: ${uniqueId}`);
 
       if (dataCache.add(topic, dataEntry)) {
-        messageForwardingService.throttleMessage(dataEntry.get_unique_id(), dataEntry);
+        homeAssistantDiscoveryService.ensureDiscoveryForReport(dataEntry)
+          .catch((err) => {
+            log(`Failed to ensure HA discovery for ${uniqueId}: ${err}`);
+          })
+          .finally(() => {
+            messageForwardingService.throttleMessage(uniqueId, dataEntry);
+          });
       } else {
         mqttStats.received.omg_invalid++;
       }

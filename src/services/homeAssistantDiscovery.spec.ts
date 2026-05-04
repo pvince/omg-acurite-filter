@@ -1,13 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { expect } from 'chai';
 import { afterEach, beforeEach, describe, it } from 'mocha';
-import * as mqttComms from '../mqtt/mqttComms';
 import { DataEntry } from './dataEntries/dataEntry';
 import configuration from './configuration';
-import { homeAssistantDiscoveryService } from './homeAssistantDiscovery';
+import { _deps, homeAssistantDiscoveryService } from './homeAssistantDiscovery';
 
 describe('homeAssistantDiscoveryService', () => {
-  const originalPublish = mqttComms.publish;
+  const originalPublish = _deps.publish;
   const originalReplayMode = configuration.isReplayMode;
 
   beforeEach(() => {
@@ -16,14 +15,14 @@ describe('homeAssistantDiscoveryService', () => {
   });
 
   afterEach(() => {
-    (mqttComms as any).publish = originalPublish;
+    _deps.publish = originalPublish;
     configuration.isReplayMode = originalReplayMode;
     (homeAssistantDiscoveryService as any)._resetForTesting();
   });
 
   it('should publish retained discovery messages once per rtl_433 entity', async () => {
-    const publishCalls: Array<{ topic: string; payload: object | string; opts: object }> = [];
-    (mqttComms as any).publish = async (topic: string, payload: object | string, opts: object) => {
+    const publishCalls: Array<{ topic: string; payload: object | string; opts?: object }> = [];
+    _deps.publish = async (topic: string, payload: object | string, opts?: object) => {
       publishCalls.push({ topic, payload, opts });
     };
 
@@ -52,7 +51,7 @@ describe('homeAssistantDiscoveryService', () => {
 
   it('should skip discovery publish for non-rtl_433 topics', async () => {
     let publishCallCount = 0;
-    (mqttComms as any).publish = async () => {
+    _deps.publish = async () => {
       publishCallCount++;
     };
 
@@ -76,7 +75,7 @@ describe('homeAssistantDiscoveryService', () => {
 
   it('should not mark discovery as sent when replay mode is enabled', async () => {
     let publishCallCount = 0;
-    (mqttComms as any).publish = async () => {
+    _deps.publish = async () => {
       publishCallCount++;
     };
 
