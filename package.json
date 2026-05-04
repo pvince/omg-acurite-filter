@@ -47,6 +47,6 @@
     "mocha": "^11.7.5",
     "ts-node": "^10.9.2",
     "ts-node-register": "^1.0.0",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
   }
 }
