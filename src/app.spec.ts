@@ -3,6 +3,8 @@
 import { expect } from 'chai';
 import { afterEach, beforeEach, describe, it } from 'mocha';
 import configuration from './services/configuration';
+import dataCache from './services/dataCache';
+import { homeAssistantDiscoveryService } from './services/homeAssistantDiscovery';
 import { messageForwardingService } from './services/messageForwardingService';
 import { mqttStats } from './services/statistics/passiveStatistics';
 
@@ -13,6 +15,8 @@ function requireApp(): typeof import('./app') {
 }
 
 describe('app processTopic', () => {
+  const originalDataCacheAdd = dataCache.add;
+  const originalEnsureDiscoveryForReport = homeAssistantDiscoveryService.ensureDiscoveryForReport;
   const originalThrottleMessage = messageForwardingService.throttleMessage;
   const originalForwardMessage = messageForwardingService.forwardMessage;
   const originalReplayMode = configuration.isReplayMode;
@@ -22,9 +26,44 @@ describe('app processTopic', () => {
   });
 
   afterEach(() => {
+    dataCache.add = originalDataCacheAdd;
+    homeAssistantDiscoveryService.ensureDiscoveryForReport = originalEnsureDiscoveryForReport;
     messageForwardingService.throttleMessage = originalThrottleMessage;
     messageForwardingService.forwardMessage = originalForwardMessage;
     configuration.isReplayMode = originalReplayMode;
+  });
+
+  it('should ensure discovery before throttling valid rtl_433 sensor reports', async () => {
+    const app = requireApp();
+
+    const raw = {
+      model: 'Acurite-Tower',
+      id: '8623',
+      rssi: -81,
+      channel: 'A',
+      battery_ok: 1,
+      temperature_C: 21.3,
+      humidity: 44
+    };
+
+    let ensureCallCount = 0;
+    let throttleCallCount = 0;
+
+    dataCache.add = () => true;
+    homeAssistantDiscoveryService.ensureDiscoveryForReport = async () => {
+      ensureCallCount++;
+    };
+    messageForwardingService.throttleMessage = () => {
+      throttleCallCount++;
+    };
+
+    app.processTopic('433_direct/raw/OMG_lilygo_rtl_433_ESP/RTL_433toMQTT/Acurite-Tower/A/8623',
+      Buffer.from(JSON.stringify(raw), 'utf8'));
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(ensureCallCount).to.equal(1);
+    expect(throttleCallCount).to.equal(1);
   });
 
   it('should forward unknown message types via throttleMessage', () => {
