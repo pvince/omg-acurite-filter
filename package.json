@@ -17,9 +17,9 @@
   "dependencies": {
     "app-root-path": "^3.1.0",
     "compression": "^1.8.1",
-    "dateformat": "^4.6.3",
+    "dateformat": "^5.0.3",
     "debug": "^4.4.3",
-    "dotenv": "^16.6.1",
+    "dotenv": "^17.4.2",
     "express": "^4.22.1",
     "express-async-handler": "^1.2.0",
     "format-duration": "^3.0.2",
@@ -28,7 +28,7 @@
     "mqtt": "^5.15.1",
     "sqlite": "^5.1.1",
     "sqlite3": "^5.1.7",
-    "toad-scheduler": "^3.1.0"
+    "toad-scheduler": "^4.0.1"
   },
   "devDependencies": {
     "@types/chai": "^4.3.20",
