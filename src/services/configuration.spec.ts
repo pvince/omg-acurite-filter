@@ -67,6 +67,23 @@ describe('configuration', () => {
     });
   });
 
+  describe('mqttHADiscoveryTopic', () => {
+    it('should return the trimmed env value when set', () => {
+      process.env.MQTT_HADISCOVERY_TOPIC = ' customhome ';
+      expect(configuration.mqttHADiscoveryTopic).to.equal('customhome');
+    });
+
+    it('should return UNSET placeholder when env is missing', () => {
+      delete process.env.MQTT_HADISCOVERY_TOPIC;
+      expect(configuration.mqttHADiscoveryTopic).to.equal('<unset>');
+    });
+
+    it('should return UNSET placeholder when env is empty or whitespace', () => {
+      process.env.MQTT_HADISCOVERY_TOPIC = '   ';
+      expect(configuration.mqttHADiscoveryTopic).to.equal('<unset>');
+    });
+  });
+
   describe('isDebug', () => {
     it('should return true when ISDEBUG is "true"', () => {
       process.env.ISDEBUG = 'true';

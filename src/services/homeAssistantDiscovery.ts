@@ -6,8 +6,8 @@ import { DataEntry } from './dataEntries/dataEntry';
 import configuration from './configuration';
 
 const RTL_433_TOPIC_SEGMENT = 'RTL_433toMQTT';
-const DISCOVERY_BASE_TOPIC = 'homeassistant/sensor';
-const DISCOVERY_SUBSCRIPTION_TOPIC = `${DISCOVERY_BASE_TOPIC}/#`;
+const DISCOVERY_DEFAULT_ROOT_TOPIC = 'homeassistant';
+const DISCOVERY_SENSOR_SEGMENT = 'sensor';
 const DISCOVERY_PUBLISH_OPTIONS: IClientPublishOptions = { retain: true, qos: 1 };
 const DISCOVERY_STATE_CLASS = 'measurement';
 const DISCOVERY_WARMUP_SETTLE_MS = 50;
@@ -401,7 +401,7 @@ class HomeAssistantDiscoveryService {
    */
   private async bootstrapDiscoveryCache(): Promise<void> {
     this.beginWarmup();
-    await _deps.subscribe(DISCOVERY_SUBSCRIPTION_TOPIC, (topic: string, message: Buffer, packet?: IPublishPacket) => {
+    await _deps.subscribe(this.getDiscoverySubscriptionTopic(), (topic: string, message: Buffer, packet?: IPublishPacket) => {
       if (this.warmupActive) {
         this.handleDiscoveryTopic(topic, message, packet?.retain !== false);
         return;
@@ -663,7 +663,7 @@ class HomeAssistantDiscoveryService {
         clearedTopics.push({ topicUniqueId, payload: retainedPayload });
       }
 
-      await _deps.clearTopic(`${DISCOVERY_BASE_TOPIC}/${topicUniqueId}/config`);
+      await _deps.clearTopic(this.buildDiscoveryConfigTopic(topicUniqueId));
       this.removeBrokerTopicState(topicUniqueId);
     }
   }
@@ -673,7 +673,7 @@ class HomeAssistantDiscoveryService {
    * @param topicUniqueId - Discovery topic id to probe.
    */
   private async probeDiscoveryTopic(topicUniqueId: string): Promise<boolean> {
-    const topic = `${DISCOVERY_BASE_TOPIC}/${topicUniqueId}/config`;
+    const topic = this.buildDiscoveryConfigTopic(topicUniqueId);
     let settleTimer: ReturnType<typeof setTimeout> | null = null;
     let resolveProbe: (() => void) | null = null;
     let observedTopic = false;
@@ -788,7 +788,7 @@ class HomeAssistantDiscoveryService {
     }
 
     try {
-      await _deps.unsubscribe(`${DISCOVERY_BASE_TOPIC}/${topicUniqueId}/config`);
+      await _deps.unsubscribe(this.buildDiscoveryConfigTopic(topicUniqueId));
     } finally {
       this.activeProbeTopicUniqueIds.delete(topicUniqueId);
     }
@@ -814,7 +814,7 @@ class HomeAssistantDiscoveryService {
   private async restoreClearedDiscoveryTopics(clearedTopics: IClearedDiscoveryTopic[]): Promise<void> {
     const errors: string[] = [];
     for (const clearedTopic of clearedTopics) {
-      const topic = `${DISCOVERY_BASE_TOPIC}/${clearedTopic.topicUniqueId}/config`;
+      const topic = this.buildDiscoveryConfigTopic(clearedTopic.topicUniqueId);
       try {
         await _deps.publish(topic, clearedTopic.payload, DISCOVERY_PUBLISH_OPTIONS);
         this.handleDiscoveryTopic(topic, Buffer.from(JSON.stringify(clearedTopic.payload), 'utf8'), true, false);
@@ -899,7 +899,7 @@ class HomeAssistantDiscoveryService {
         continue;
       }
 
-      await _deps.clearTopic(`${DISCOVERY_BASE_TOPIC}/${topicUniqueId}/config`);
+      await _deps.clearTopic(this.buildDiscoveryConfigTopic(topicUniqueId));
       this.removeBrokerTopicState(topicUniqueId);
     }
   }
@@ -957,13 +957,48 @@ class HomeAssistantDiscoveryService {
    * @returns - The entity id encoded in the topic, or null when the topic is not a config topic.
    */
   private extractDiscoveryUniqueId(topic: string): string | null {
+    const discoveryBaseSegments = this.getDiscoveryBaseTopic().split('/');
     const segments = topic.split('/');
-    if (segments.length !== 4 || segments[0] !== 'homeassistant' || segments[1] !== 'sensor' || segments[segments.length - 1] !== 'config') {
+    if (segments.length !== discoveryBaseSegments.length + 2 || segments[segments.length - 1] !== 'config') {
       return null;
+    }
+
+    for (let i = 0; i < discoveryBaseSegments.length; i++) {
+      if (segments[i] !== discoveryBaseSegments[i]) {
+        return null;
+      }
     }
 
     const result = segments[segments.length - 2];
     return result.length > 0 ? result : null;
+  }
+
+  /**
+   * Build the configured Home Assistant discovery base topic.
+   * @returns - Discovery base topic root.
+   */
+  private getDiscoveryBaseTopic(): string {
+    const rootTopic = configuration.mqttHADiscoveryTopic === UNSET_CONFIG_VALUE
+      ? DISCOVERY_DEFAULT_ROOT_TOPIC
+      : configuration.mqttHADiscoveryTopic;
+    return `${rootTopic}/${DISCOVERY_SENSOR_SEGMENT}`;
+  }
+
+  /**
+   * Build the wildcard subscription topic for discovery cache warmup.
+   * @returns - Discovery wildcard topic.
+   */
+  private getDiscoverySubscriptionTopic(): string {
+    return `${this.getDiscoveryBaseTopic()}/#`;
+  }
+
+  /**
+   * Build one canonical discovery config topic.
+   * @param uniqueId - Discovery entity unique id.
+   * @returns - Discovery config topic.
+   */
+  private buildDiscoveryConfigTopic(uniqueId: string): string {
+    return `${this.getDiscoveryBaseTopic()}/${uniqueId}/config`;
   }
 
   /**
@@ -1249,7 +1284,7 @@ class HomeAssistantDiscoveryService {
       const uniqueId = `${deviceKey}-${metricConfig.field}`;
       discoveryMessages.push({
         uniqueId,
-        topic: `${DISCOVERY_BASE_TOPIC}/${uniqueId}/config`,
+        topic: this.buildDiscoveryConfigTopic(uniqueId),
         payload: {
           stat_t: canonicalStateTopic,
           dev_cla: metricConfig.deviceClass,

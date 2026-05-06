@@ -149,6 +149,47 @@ describe('homeAssistantDiscoveryService', () => {
     expect(discoveryCallback).to.not.equal(null);
   });
 
+  it('should subscribe to the overridden discovery root when MQTT_HADISCOVERY_TOPIC is set', async () => {
+    process.env.MQTT_HADISCOVERY_TOPIC = 'customhome';
+    let subscribedTopic = '';
+    _deps.subscribe = async (topic: string, callback: fnMessageCallback) => {
+      subscribedTopic = topic;
+      discoveryCallback = callback;
+    };
+
+    await homeAssistantDiscoveryService.initializeDiscovery();
+
+    expect(subscribedTopic).to.equal('customhome/sensor/#');
+    expect(discoveryCallback).to.not.equal(null);
+  });
+
+  it('should publish canonical discovery payloads to the overridden discovery root', async () => {
+    process.env.MQTT_HADISCOVERY_TOPIC = 'customhome';
+    const publishCalls: Array<{ topic: string; payload: object | string; opts?: object }> = [];
+    _deps.publish = async (topic: string, payload: object | string, opts?: object) => {
+      publishCalls.push({ topic, payload, opts });
+    };
+
+    await homeAssistantDiscoveryService.ensureDiscoveryForReport(buildAcuriteTowerEntry());
+
+    expect(publishCalls).to.have.lengthOf(2);
+    expect(publishCalls[0].topic).to.equal('customhome/sensor/Acurite-Tower-A-8623-temperature_C/config');
+    expect(publishCalls[1].topic).to.equal('customhome/sensor/Acurite-Tower-A-8623-humidity/config');
+  });
+
+  it('should fall back to homeassistant discovery root when MQTT_HADISCOVERY_TOPIC is empty', async () => {
+    process.env.MQTT_HADISCOVERY_TOPIC = '   ';
+    const publishTopics: string[] = [];
+    _deps.publish = async (topic: string) => {
+      publishTopics.push(topic);
+    };
+
+    await homeAssistantDiscoveryService.ensureDiscoveryForReport(buildAcuriteTowerEntry());
+
+    expect(publishTopics).to.include('homeassistant/sensor/Acurite-Tower-A-8623-temperature_C/config');
+    expect(publishTopics).to.include('homeassistant/sensor/Acurite-Tower-A-8623-humidity/config');
+  });
+
   it('should honor configured source and destination topic mappings for canonical discovery', async () => {
     process.env.MQTT_SRC_TOPIC = 'root/raw/+/subTopic/RTL_433toMQTT';
     process.env.MQTT_DST_TOPIC = 'forwarded/+/normalized/RTL_433toMQTT';

@@ -79,6 +79,17 @@ class Configuration {
   }
 
   /**
+   * Home Assistant discovery topic root, defined by the environment variable MQTT_HADISCOVERY_TOPIC.
+   * This value is treated as a root segment (for example "homeassistant").
+   * @example homeassistant
+   * @returns = Home Assistant discovery topic root.
+   */
+  public get mqttHADiscoveryTopic(): string {
+    const topicRoot = process.env.MQTT_HADISCOVERY_TOPIC?.trim();
+    return topicRoot !== undefined && topicRoot.length > 0 ? topicRoot : UNSET;
+  }
+
+  /**
    * Is the service running in debug mode? ISDEBUG env variable.
    * @example true
    * @returns = True if the service is running in debug mode.
