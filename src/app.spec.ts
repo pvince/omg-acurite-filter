@@ -48,10 +48,16 @@ describe('app processTopic', () => {
 
     let ensureCallCount = 0;
     let throttleCallCount = 0;
+    let releaseDiscovery = (): void => {
+      throw new Error('Discovery release was not set');
+    };
 
     dataCache.add = () => true;
     homeAssistantDiscoveryService.ensureDiscoveryForReport = async () => {
       ensureCallCount++;
+      await new Promise<void>((resolve) => {
+        releaseDiscovery = resolve;
+      });
     };
     messageForwardingService.throttleMessage = () => {
       throttleCallCount++;
@@ -63,6 +69,12 @@ describe('app processTopic', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(ensureCallCount).to.equal(1);
+    expect(throttleCallCount).to.equal(0);
+
+    releaseDiscovery();
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
     expect(throttleCallCount).to.equal(1);
   });
 
@@ -129,6 +141,81 @@ describe('app startup', () => {
     };
     app._deps.startWebService = async () => {
       callOrder.push('web');
+      return {} as any;
+    };
+
+    try {
+      await app.startup();
+    } finally {
+      Object.assign(app._deps, originalDeps);
+    }
+
+    expect(callOrder).to.deep.equal(['dataStore', 'mqtt', 'discovery', 'subscribe', 'web']);
+  });
+
+  it('should not wait for delayed discovery initialization before subscribing to source topics', async () => {
+    const app = requireApp();
+    const originalDeps = { ...app._deps };
+    const callOrder: string[] = [];
+    let releaseDiscoveryInitialization = (): void => {
+      throw new Error('Discovery initialization release was not set');
+    };
+
+    app._deps.initializeDataStore = async () => {
+      callOrder.push('dataStore');
+    };
+    app._deps.startMQTT = async () => {
+      callOrder.push('mqtt');
+    };
+    app._deps.initializeDiscovery = async () => {
+      callOrder.push('discovery');
+      await new Promise<void>((resolve) => {
+        releaseDiscoveryInitialization = resolve;
+      });
+    };
+    app._deps.subscribe = async () => {
+      callOrder.push('subscribe');
+    };
+    app._deps.startWebService = async () => {
+      callOrder.push('web');
+      return {} as any;
+    };
+
+    try {
+      const startupPromise = app.startup();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(callOrder).to.deep.equal(['dataStore', 'mqtt', 'discovery', 'subscribe', 'web']);
+
+      releaseDiscoveryInitialization();
+      await startupPromise;
+    } finally {
+      Object.assign(app._deps, originalDeps);
+    }
+
+    expect(callOrder).to.deep.equal(['dataStore', 'mqtt', 'discovery', 'subscribe', 'web']);
+  });
+
+  it('should continue startup when discovery initialization fails', async () => {
+    const app = requireApp();
+    const originalDeps = { ...app._deps };
+    const callOrder: string[] = [];
+
+    app._deps.initializeDataStore = async () => {
+      callOrder.push('dataStore');
+    };
+    app._deps.startMQTT = async () => {
+      callOrder.push('mqtt');
+    };
+    app._deps.initializeDiscovery = async () => {
+      callOrder.push('discovery');
+      throw new Error('discovery init failed');
+    };
+    app._deps.subscribe = async () => {
+      callOrder.push('subscribe');
+    };
+    app._deps.startWebService = async () => {
+      callOrder.push('web');
+      return {} as any;
     };
 
     try {

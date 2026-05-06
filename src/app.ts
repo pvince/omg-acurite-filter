@@ -106,24 +106,40 @@ async function subscribe(): Promise<void> {
   }
 }
 
+export const _deps = {
+  initializeDataStore,
+  startMQTT,
+  initializeDiscovery: (): Promise<void> => homeAssistantDiscoveryService.initializeDiscovery(),
+  subscribe,
+  startWebService
+};
+
 /**
  * Main startup function
  */
-async function startup(): Promise<void> {
+export async function startup(): Promise<void> {
   if ( configuration.DUMP_MQTT_MSGS ) {
     log(`Dumping all received MQTT messages to ${configuration.MQTT_MSG_LOG_FILE}...`);
   }
 
   log('Loading the data store...');
-  await initializeDataStore();
+  await _deps.initializeDataStore();
 
   log('Starting MQTT client...');
-  await startMQTT();
+  await _deps.startMQTT();
+
+  log('Initializing discovery dedup cache...');
+  const discoveryInitialization = _deps.initializeDiscovery()
+    .catch((err) => {
+      log(`Failed to initialize discovery dedup cache: ${err}`);
+    });
 
   log('Subscribing...');
-  await subscribe();
+  await _deps.subscribe();
 
-  await startWebService();
+  await _deps.startWebService();
+
+  await discoveryInitialization;
 }
 
 // If the configuration says we are in replay mode, do not start the service.
