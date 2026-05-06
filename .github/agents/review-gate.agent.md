@@ -14,6 +14,7 @@ You are the final review gate for this repository. Your job is to review the cur
 2. Verify that the work followed the repository TDD rule for the kind of change involved.
 3. Verify that the claimed tests are sufficient for the touched behavior.
 4. Reject approval if the code changed after the last stated review or test run and those checks were not rerun.
+5. If the prompt includes prior review handoff context, read that first and use it to verify whether earlier findings were actually addressed before looking for net-new issues.
 
 ## Constraints
 
@@ -36,3 +37,7 @@ Verification
 
 Notes
 - List only residual risks or missing evidence.
+
+Handoff
+- List only concise context the next Review Gate run should start with.
+- Include open findings worth re-checking, resolved findings that should only be reopened if related code changed, likely next-touch files or behaviors, and which verification claims would become stale after edits.
