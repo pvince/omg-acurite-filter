@@ -6,22 +6,31 @@ const ESCAPE_LIST = ['\\', '/', '.', '*', '[', ']', '(', ')'];
 /**
  * Constructs a Regex based on an MQTT topic with wildcard characters.
  * Limitations:
- * - topic may have the following MQTT wildcards: +, -
+ * - topic may have the following MQTT wildcards: +, #
  * - topic may have the following 'regex' chars: / . * \ [ ] ( )
  * - topic should avoid any other 'regex' special chars
  * @param topic - Topic to regexify
  * @returns - Regex that will find matching topics
  */
 export function buildTopicRegex(topic: string): RegExp {
-  let tmpStr = topic;
-  for (const char of ESCAPE_LIST) {
-    tmpStr = tmpStr.replaceAll(char, `\\${char}`);
-  }
+  const pattern = topic.split('/').map((segment, index) => {
+    const prefix = index === 0 ? '' : '\\/';
 
-  // Topic wildcards.
-  tmpStr = tmpStr.replaceAll('+', '(\\w*)');
-  tmpStr = tmpStr.replaceAll('#', '(.+)');
-  return new RegExp(tmpStr);
+    if (segment === '+') {
+      return `${prefix}([^/]*)`;
+    }
+    if (segment === '#') {
+      return index === 0 ? '(.*)' : '(?:\\/(.*))?';
+    }
+
+    let escapedSegment = segment;
+    for (const char of ESCAPE_LIST) {
+      escapedSegment = escapedSegment.replaceAll(char, `\\${char}`);
+    }
+    return `${prefix}${escapedSegment}`;
+  }).join('');
+
+  return new RegExp(`^${pattern}$`);
 }
 
 
@@ -50,49 +59,54 @@ export function hasWildcards(topic: string): boolean {
 }
 
 /**
- * Find the next MQTT wildcard character in the input string.
- * @param input - Input string, probably an MQTT topic
- * @param start_index - Index to start the search at.
- * @returns - Returns the index of the next wildcard character, or -1 if no wildcard is f ound.
- */
-function _nextWildcard(input: string, start_index: number = 0): number {
-  const plus = input.indexOf('+', start_index);
-  const hash = input.indexOf('#', start_index);
-  if (plus !== -1 && hash !== -1) {
-    return Math.min(plus, hash);
-  } else if (plus !== -1) {
-    return plus;
-  }
-  return hash;
-}
-
-/**
  * Forwards the topic
  * @param src_topic - Topic to forward
  * @returns - Forwarded topic
  */
 export function forwardTopic(src_topic: string): string {
-  const matches = getSrcTopicRegex().exec(src_topic);
-
-  // Dest topic must have same number of wildcards as the src_topic
-  let result = '';
-  const dest_topic = configuration.mqttDestTopic;
-  if (matches !== null) {
-    let match_index = 1;
-    let prev_plus = 0;
-    let next_plus =  _nextWildcard(dest_topic);
-    while (matches[match_index] !== undefined && matches[match_index] !== '0' && next_plus >= 0) {
-      result += dest_topic.substring(prev_plus, next_plus);
-      result += matches[match_index];
-
-      prev_plus = next_plus + 1;
-      next_plus = _nextWildcard(dest_topic, prev_plus);
-      match_index++;
-    }
+  if (getSrcTopicRegex().exec(src_topic) === null) {
+    return '';
   }
 
-  return result;
+  const srcSegments = configuration.mqttSrcTopic.split('/');
+  const topicSegments = src_topic.split('/');
+  const wildcardValues: string[] = [];
+  let topicIndex = 0;
+  for (const srcSegment of srcSegments) {
+    if (srcSegment === '+') {
+      wildcardValues.push(topicSegments[topicIndex] ?? '');
+      topicIndex++;
+      continue;
+    }
+    if (srcSegment === '#') {
+      wildcardValues.push(topicSegments.slice(topicIndex).join('/'));
+      break;
+    }
 
+    topicIndex++;
+  }
+
+  const resultSegments: string[] = [];
+  let wildcardIndex = 0;
+  for (const destSegment of configuration.mqttDestTopic.split('/')) {
+    if (destSegment === '+') {
+      resultSegments.push(wildcardValues[wildcardIndex] ?? '');
+      wildcardIndex++;
+      continue;
+    }
+    if (destSegment === '#') {
+      const suffix = wildcardValues[wildcardIndex] ?? '';
+      wildcardIndex++;
+      if (suffix.length > 0) {
+        resultSegments.push(...suffix.split('/'));
+      }
+      continue;
+    }
+
+    resultSegments.push(destSegment);
+  }
+
+  return resultSegments.join('/');
 }
 
 /**
