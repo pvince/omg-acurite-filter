@@ -97,7 +97,6 @@ describe('homeAssistantDiscoveryService', () => {
     savedEnv = { ...process.env };
     process.env.MQTT_SRC_TOPIC = '433_direct/raw/+/RTL_433toMQTT';
     process.env.MQTT_DST_TOPIC = '433_direct/+/RTL_433toMQTT';
-    delete process.env.MQTT_HADISCOVERY_TOPIC;
     configuration.isReplayMode = false;
     discoveryCallback = null;
     (homeAssistantDiscoveryService as any)._resetForTesting();
