@@ -8,6 +8,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "lint": "eslint src --ext .ts",
     "start": "node -r ts-node/register src/app.ts",
     "test": "mocha src/**/*.spec.ts",
     "test:no-exit": "mocha src/**/*.spec.ts",
@@ -31,6 +32,8 @@
     "toad-scheduler": "^4.0.1"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.5",
+    "@eslint/js": "^10.0.1",
     "@types/chai": "^5.2.3",
     "@types/compression": "^1.8.1",
     "@types/dateformat": "^5.0.3",
@@ -39,11 +42,12 @@
     "@types/lodash": "^4.17.24",
     "@types/mocha": "^10.0.10",
     "@types/node": "^20.19.39",
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
+    "@typescript-eslint/eslint-plugin": "^8.59.1",
+    "@typescript-eslint/parser": "^8.59.1",
     "chai": "^6.2.2",
-    "eslint": "^8.57.1",
-    "eslint-plugin-jsdoc": "^46.10.1",
+    "eslint": "^10.3.0",
+    "eslint-plugin-jsdoc": "^62.9.0",
+    "globals": "^17.6.0",
     "mocha": "^11.7.5",
     "ts-node": "^10.9.2",
     "ts-node-register": "^1.0.0",
