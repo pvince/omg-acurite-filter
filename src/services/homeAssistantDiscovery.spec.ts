@@ -67,6 +67,23 @@ function buildAcurite5n1TempEntry(): DataEntry {
   );
 }
 
+function buildWh51Entry(): DataEntry {
+  return new DataEntry(
+    '433_direct/raw/OMG_lilygo_rtl_433_ESP/RTL_433toMQTT/Fineoffset-WH51/0ef616',
+    {
+      model: 'Fineoffset-WH51',
+      id: '0ef616',
+      rssi: -70,
+      battery_ok: 1,
+      battery_mV: 1800,
+      moisture: 47,
+      boost: 0,
+      ad_raw: 223,
+      mic: 'CRC'
+    } as any
+  );
+}
+
 describe('homeAssistantDiscoveryService', () => {
   const originalClearTopic = _deps.clearTopic;
   const originalPublish = _deps.publish;
@@ -80,6 +97,7 @@ describe('homeAssistantDiscoveryService', () => {
     savedEnv = { ...process.env };
     process.env.MQTT_SRC_TOPIC = '433_direct/raw/+/RTL_433toMQTT';
     process.env.MQTT_DST_TOPIC = '433_direct/+/RTL_433toMQTT';
+    delete process.env.MQTT_HADISCOVERY_TOPIC;
     configuration.isReplayMode = false;
     discoveryCallback = null;
     (homeAssistantDiscoveryService as any)._resetForTesting();
@@ -1655,6 +1673,8 @@ describe('homeAssistantDiscoveryService', () => {
 
   it('should avoid overlapping exact-topic probes for the same unverified canonical topic', async () => {
     let exactSubscribeCount = 0;
+    let activeExactSubscribes = 0;
+    let maxConcurrentExactSubscribes = 0;
     const publishTopics: string[] = [];
     let releaseSubscribe = (): void => {
       throw new Error('releaseSubscribe was not set');
@@ -1670,9 +1690,14 @@ describe('homeAssistantDiscoveryService', () => {
 
       if (topic === 'homeassistant/sensor/Acurite-Tower-A-8623-temperature_C/config') {
         exactSubscribeCount++;
-        await new Promise<void>((resolve) => {
-          releaseSubscribe = resolve;
-        });
+        activeExactSubscribes++;
+        maxConcurrentExactSubscribes = Math.max(maxConcurrentExactSubscribes, activeExactSubscribes);
+        if (exactSubscribeCount === 1) {
+          await new Promise<void>((resolve) => {
+            releaseSubscribe = resolve;
+          });
+        }
+        activeExactSubscribes--;
       }
     };
 
@@ -1687,6 +1712,8 @@ describe('homeAssistantDiscoveryService', () => {
 
     releaseSubscribe();
     await Promise.all([firstEnsure, secondEnsure]);
+    expect(exactSubscribeCount).to.equal(2);
+    expect(maxConcurrentExactSubscribes).to.equal(1);
   });
 
   it('should clear a previously missed legacy topic when a later report triggers a fresh exact-topic probe', async () => {
@@ -1870,6 +1897,35 @@ describe('homeAssistantDiscoveryService', () => {
     expect((publishCalls[0].payload as any).uniq_id).to.equal('Maverick-ET73x-7761-temperature_1_C');
   });
 
+  it('should publish discovery for Fineoffset-WH51 moisture payloads', async () => {
+    const publishCalls: Array<{ topic: string; payload: object | string; opts?: object }> = [];
+    _deps.publish = async (topic: string, payload: object | string, opts?: object) => {
+      publishCalls.push({ topic, payload, opts });
+    };
+
+    await homeAssistantDiscoveryService.ensureDiscoveryForReport(buildWh51Entry());
+
+    expect(publishCalls).to.have.lengthOf(1);
+    expect(publishCalls[0].topic).to.equal('homeassistant/sensor/Fineoffset-WH51-0ef616-moisture/config');
+    expect(publishCalls[0].opts).to.deep.equal({ retain: true, qos: 1 });
+    expect(publishCalls[0].payload).to.deep.equal({
+      stat_t: '433_direct/+/RTL_433toMQTT/Fineoffset-WH51/0ef616',
+      dev_cla: 'moisture',
+      unit_of_meas: '%',
+      name: 'moisture',
+      uniq_id: 'Fineoffset-WH51-0ef616-moisture',
+      val_tpl: '{{ value_json.moisture | is_defined }}',
+      state_class: 'measurement',
+      device: {
+        identifiers: ['Fineoffset-WH51-0ef616'],
+        connections: [['mac', 'Fineoffset-WH51-0ef616']],
+        model: 'Fineoffset-WH51',
+        name: 'Fineoffset-WH51-0ef616',
+        via_device: 'OMG_lilygo_rtl_433_ESP'
+      }
+    });
+  });
+
   it('should publish canonical subtype-based identities for Acurite ProIn payloads', async () => {
     const publishTopics: string[] = [];
     _deps.publish = async (topic: string) => {
@@ -1934,6 +1990,48 @@ describe('homeAssistantDiscoveryService', () => {
         rssi: -64,
         temperature_1_C: 19.4,
         temperature_2_C: 51.8
+      } as any
+    );
+
+    await homeAssistantDiscoveryService.ensureDiscoveryForReport(entry);
+
+    expect(publishCallCount).to.equal(0);
+  });
+
+  it('should skip discovery for unknown models even when moisture is present', async () => {
+    let publishCallCount = 0;
+    _deps.publish = async () => {
+      publishCallCount++;
+    };
+
+    const entry = new DataEntry(
+      '433_direct/raw/OMG_lilygo_rtl_433_ESP/RTL_433toMQTT/Unknown-Model/999',
+      {
+        model: 'Unknown-Model',
+        id: '999',
+        rssi: -64,
+        moisture: 55
+      } as any
+    );
+
+    await homeAssistantDiscoveryService.ensureDiscoveryForReport(entry);
+
+    expect(publishCallCount).to.equal(0);
+  });
+
+  it('should skip Fineoffset-WH51 discovery when moisture is not numeric', async () => {
+    let publishCallCount = 0;
+    _deps.publish = async () => {
+      publishCallCount++;
+    };
+
+    const entry = new DataEntry(
+      '433_direct/raw/OMG_lilygo_rtl_433_ESP/RTL_433toMQTT/Fineoffset-WH51/0ef616',
+      {
+        model: 'Fineoffset-WH51',
+        id: '0ef616',
+        rssi: -70,
+        moisture: '47'
       } as any
     );
 
@@ -2629,7 +2727,6 @@ describe('homeAssistantDiscoveryService', () => {
     ]);
     expect(publishCalls).to.deep.equal([
       'homeassistant/sensor/Acurite-Tower-A-8623-humidity/config',
-      'homeassistant/sensor/A_Acurite-Tower_8623_temperature_C/config',
       'homeassistant/sensor/A_Acurite-Tower_8623_humidity/config'
     ]);
   });

@@ -11,6 +11,7 @@ const DISCOVERY_SENSOR_SEGMENT = 'sensor';
 const DISCOVERY_PUBLISH_OPTIONS: IClientPublishOptions = { retain: true, qos: 1 };
 const DISCOVERY_STATE_CLASS = 'measurement';
 const DISCOVERY_WARMUP_SETTLE_MS = 50;
+const WH51_MODEL = 'Fineoffset-WH51';
 const CANONICAL_PROBE_ATTEMPTS = 2;
 const UNSET_CONFIG_VALUE = '<unset>';
 
@@ -211,6 +212,13 @@ const METRIC_DISCOVERY_CONFIGS: ReadonlyArray<IMetricDiscoveryConfig> = [
     unitOfMeasurement: '°C',
     entityName: 'probe_2_temperature',
     legacyLabel: 'Probe 2 Temperature'
+  },
+  {
+    field: 'moisture',
+    deviceClass: 'moisture',
+    unitOfMeasurement: '%',
+    entityName: 'moisture',
+    legacyLabel: 'Moisture'
   }
 ];
 
@@ -1483,6 +1491,8 @@ class HomeAssistantDiscoveryService {
     case 'temperature_1_C':
     case 'temperature_2_C':
       return dataEntry.data.model === KnownType.MaverickET73 && this.readNumericField(dataEntry, fieldName) !== null;
+    case 'moisture':
+      return String(dataEntry.data.model) === WH51_MODEL && this.readNumericField(dataEntry, fieldName) !== null;
     default:
       return false;
     }
