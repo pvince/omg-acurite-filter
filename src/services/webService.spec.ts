@@ -1,11 +1,37 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { expect } from 'chai';
 import { describe, it, afterEach } from 'mocha';
+import express from 'express';
 import { initializeExpress, startWebService, stopWebService } from './webService';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const http = require('http') as typeof import('http');
 const originalCreateServer = http.createServer;
+
+function initializeExpressWithCapturedMiddleware(): {
+  app: ReturnType<typeof initializeExpress>;
+  middleware: Array<(...args: any[]) => unknown>;
+} {
+  const middleware: Array<(...args: any[]) => unknown> = [];
+  const expressAny = express as any;
+  const originalUse = expressAny.application.use;
+
+  expressAny.application.use = function (...args: any[]) {
+    for (const arg of args) {
+      if (typeof arg === 'function') {
+        middleware.push(arg);
+      }
+    }
+    return originalUse.apply(this, args);
+  };
+
+  try {
+    const app = initializeExpress();
+    return { app, middleware };
+  } finally {
+    expressAny.application.use = originalUse;
+  }
+}
 
 describe('webService', () => {
   afterEach(async () => {
@@ -14,20 +40,18 @@ describe('webService', () => {
   });
 
   it('should initialize express app with expected middleware stack', () => {
-    const app = initializeExpress();
-    const stack = (app as any)._router?.stack ?? [];
+    const { app, middleware } = initializeExpressWithCapturedMiddleware();
 
-    expect(stack.length).to.be.greaterThan(0);
+    expect(app).to.not.equal(undefined);
+    expect(middleware.length).to.be.greaterThan(0);
   });
 
   it('should return not found for unmatched routes via fallback middleware', () => {
-    const app = initializeExpress();
-    const stack = (app as any)._router?.stack ?? [];
-    const notFoundLayer = stack.find((layer: any) =>
-      typeof layer.handle === 'function' && layer.handle.length === 3
-      && layer.handle.toString().includes('Unhandled web request'));
+    const { middleware } = initializeExpressWithCapturedMiddleware();
+    const notFoundMiddleware = middleware.find((fn) => fn.length === 3
+      && fn.toString().includes('Unhandled web request'));
 
-    expect(notFoundLayer).to.not.equal(undefined);
+    expect(notFoundMiddleware).to.not.equal(undefined);
 
     let sentStatus = 0;
     const req = { method: 'GET', originalUrl: '/missing' } as any;
@@ -37,17 +61,16 @@ describe('webService', () => {
       }
     } as any;
 
-    notFoundLayer.handle(req, res, () => undefined);
+    (notFoundMiddleware as (req: unknown, res: unknown, next: () => void) => void)(req, res, () => undefined);
 
     expect(sentStatus).to.equal(404);
   });
 
   it('should map thrown errors to apiError payloads', () => {
-    const app = initializeExpress();
-    const stack = (app as any)._router?.stack ?? [];
-    const errorLayer = stack.find((layer: any) => typeof layer.handle === 'function' && layer.handle.length === 4);
+    const { middleware } = initializeExpressWithCapturedMiddleware();
+    const errorMiddleware = middleware.find((fn) => fn.length === 4);
 
-    expect(errorLayer).to.not.equal(undefined);
+    expect(errorMiddleware).to.not.equal(undefined);
 
     let statusCode = 0;
     let payload: unknown = null;
@@ -60,7 +83,12 @@ describe('webService', () => {
       }
     } as any;
 
-    errorLayer.handle(new Error('boom'), req, res, () => undefined);
+    (errorMiddleware as (err: unknown, req: unknown, res: unknown, next: () => void) => void)(
+      new Error('boom'),
+      req,
+      res,
+      () => undefined
+    );
 
     expect(statusCode).to.equal(500);
     expect(payload).to.deep.equal({ code: 500, message: 'boom' });

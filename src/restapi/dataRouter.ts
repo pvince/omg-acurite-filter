@@ -4,7 +4,6 @@ import expressAsyncHandler from 'express-async-handler';
 import dataStore from '../services/database/dataStore';
 import { IDataStoreOMGMsg } from '../services/database/dataStore.types';
 import _ from 'lodash';
-import { ParsedQs } from 'qs';
 import { buildError, buildSuccess, isError, isSuccess } from './apiError';
 
 
@@ -14,18 +13,21 @@ import { buildError, buildSuccess, isError, isSuccess } from './apiError';
  * @param res - Outgoing response.
  */
 async function handleMsgsByDeviceID(req: Request, res: Response): Promise<void> {
-  const parseNum = function (input: undefined | string | string[] | ParsedQs | ParsedQs[]): number | undefined  {
+  const parseNum = function (input: unknown): number | undefined  {
     let result: number | undefined = undefined;
 
     if (_.isString(input)) {
       result = _.parseInt(input);
+    } else if (Array.isArray(input) && input.length > 0 && _.isString(input[0])) {
+      result = _.parseInt(input[0]);
     }
     return result;
   };
 
   let status = buildSuccess();
 
-  const device_id = req.params.device_id ?? null;
+  const rawDeviceID = req.params.device_id;
+  const device_id = typeof rawDeviceID === 'string' ? rawDeviceID : null;
   const max_age = parseNum(req.query.max_age);
   const min_age = parseNum(req.query.min_age);
 
@@ -45,8 +47,8 @@ async function handleMsgsByDeviceID(req: Request, res: Response): Promise<void> 
   }
 
   if (isError(status)) {
-    res.json(status);
     res.statusCode = status.code;
+    res.json(status);
   }
 }
 
