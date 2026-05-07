@@ -62,7 +62,6 @@ export function gatherDataCacheItems(): IAPICacheSummaryItem[] {
  */
 export function handleCache(req: Request, res: Response): void {
   res.json(gatherDataCacheItems());
-  res.send();
 }
 
 /**
@@ -71,7 +70,8 @@ export function handleCache(req: Request, res: Response): void {
  * @param res - Outgoing response.
  */
 export function handleCacheEntry(req: Request, res: Response): void {
-  const id = req.params.id ?? null;
+  const idParam = req.params.id;
+  const id = typeof idParam === 'string' ? idParam : null;
   let entries: DataEntry[] | null = null;
   if (id !== null) {
     entries = dataCache.getByID(id);
@@ -97,7 +97,6 @@ export function handleCleanup(req: Request, res: Response): void {
   };
 
   res.json(results);
-  res.send();
 }
 
 const cacheRouter = Router();

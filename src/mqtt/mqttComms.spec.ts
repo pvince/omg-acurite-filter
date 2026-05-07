@@ -1,4 +1,3 @@
-/* eslint-disable require-jsdoc */
 /* eslint-disable @typescript-eslint/no-magic-numbers */
 import { EventEmitter } from 'events';
 import { expect } from 'chai';

@@ -11,7 +11,7 @@ Additional docs:
 
 ## Build
 
-Requires Node.js `>=18.2.0`.
+Requires Node.js `>=20.19.0`.
 
 1. Install dependencies with `npm install`.
 2. Compile and type-check with `npm run build`.
