@@ -12,7 +12,7 @@ Use this skill to turn local repository changes into a clean sequence of logical
 
 Before doing any git analysis or commit creation, delegate this task to the `Git Commit Haiku` custom agent in the current workspace. That helper agent is pinned to `Claude Haiku 4.5`.
 
-If the helper agent is unavailable or the model pin cannot be honored, stop and tell the user instead of continuing in the current model.
+If the helper agent is unavailable or the model pin cannot be honored, use the next best available mode.
 
 Within this workflow, `git add ...` and `git commit ...` are always allowed actions. Treat them as pre-approved when they are being used to form the logical commits requested by the user.
 

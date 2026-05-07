@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
 import Debug from 'debug';
 import { MS_IN_MINUTE } from '../constants';
 import appRootPath from 'app-root-path';
@@ -6,6 +6,19 @@ import path from 'path';
 
 const UNSET = '<unset>';
 const log = Debug('omg-acurite-filter');
+
+/**
+ * Determine whether dotenv should load local .env values for this runtime.
+ * Tests run with NODE_ENV=test to avoid machine-local leakage into suite behavior.
+ * @returns - True when dotenv should be loaded.
+ */
+export function _shouldLoadDotenvForRuntime(): boolean {
+  return process.env.NODE_ENV !== 'test';
+}
+
+if (_shouldLoadDotenvForRuntime()) {
+  dotenv.config();
+}
 
 /**
  * Ensure that the MQTT topic ends in '/#'. Gracefully handles if an 'undefined' value is passed in.
@@ -76,6 +89,17 @@ class Configuration {
    */
   public get mqttDestTopic(): string {
     return _forceEndingHash(process.env.MQTT_DST_TOPIC) ?? UNSET;
+  }
+
+  /**
+   * Home Assistant discovery topic root, defined by the environment variable MQTT_HADISCOVERY_TOPIC.
+   * This value is treated as a root segment (for example "homeassistant").
+   * @example homeassistant
+   * @returns = Home Assistant discovery topic root.
+   */
+  public get mqttHADiscoveryTopic(): string {
+    const topicRoot = process.env.MQTT_HADISCOVERY_TOPIC?.trim();
+    return topicRoot !== undefined && topicRoot.length > 0 ? topicRoot : UNSET;
   }
 
   /**

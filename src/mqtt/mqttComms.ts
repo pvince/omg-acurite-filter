@@ -1,6 +1,6 @@
 import * as mqtt from 'mqtt';
 import debug from 'debug';
-import { IClientOptions, IClientPublishOptions, MqttClient } from 'mqtt';
+import { IClientOptions, IClientPublishOptions, IPublishPacket, MqttClient } from 'mqtt';
 import _ from 'lodash';
 import { buildTopicRegex, hasWildcards } from './mqtt.util';
 import { mqttSendRate, mqttStats } from '../services/statistics/passiveStatistics';
@@ -8,11 +8,13 @@ import { mqttSendRate, mqttStats } from '../services/statistics/passiveStatistic
 /**
  * Callback function invoked when a message is received.
  */
-export type fnMessageCallback = (topic: string, message: Buffer) => void;
+export type fnMessageCallback = (topic: string, message: Buffer, packet?: IPublishPacket) => void;
 
 const log = debug('omg-acurite-filter:mqttComms');
 
 let client: MqttClient | null = null;
+const pendingSubscribeOperations = new Map<string, Promise<void>>();
+let subscribeOperationGeneration = 0;
 
 
 /**
@@ -112,6 +114,15 @@ class SubscriptionCache {
    */
   public has(topic: string): boolean {
     return this.cacheMap.has(topic);
+  }
+
+  /**
+   * Get the exact callback currently registered for one topic.
+   * @param topic - Exact topic string.
+   * @returns - The registered callback, or null when none exists.
+   */
+  public getExactCallback(topic: string): fnMessageCallback | null {
+    return this.cacheMap.get(topic)?.callback ?? null;
   }
 
   /**
@@ -235,12 +246,12 @@ export async function startClient(host: string, opts?: IClientOptions): Promise<
     });
 
     // If we receive a message, direct it to the configured handler.
-    client.on('message', (topic, message) => {
+    client.on('message', (topic, message, packet) => {
       const callbackArray = subscriptionCache.get(topic);
       if (callbackArray !== undefined) {
         try {
           for (const callback of callbackArray) {
-            callback(topic, message);
+            callback(topic, message, packet);
           }
         } catch (err) {
           log('Subscription to %s triggered an error: %s', topic, err);
@@ -294,9 +305,49 @@ export async function publish(topic: string, data: object | string, opts: IClien
  * @param callback - Callback function to invoke with any messages received.
  */
 export async function subscribe(topic: string, callback: fnMessageCallback): Promise<void> {
-  subscriptionCache.add(topic, callback);
+  const operationGeneration = subscribeOperationGeneration;
+  const previousOperation = (pendingSubscribeOperations.get(topic) ?? Promise.resolve())
+    .catch(() => undefined);
+  let completeOperation = (): void => undefined;
+  const operationComplete = new Promise<void>((resolve) => {
+    completeOperation = resolve;
+  });
+  const queuedOperation = previousOperation.then(() => operationComplete);
+  pendingSubscribeOperations.set(topic, queuedOperation);
 
-  await getClient().subscribeAsync(topic);
+  await previousOperation;
+  if (subscribeOperationGeneration !== operationGeneration) {
+    return;
+  }
+
+  const previousCallback = subscriptionCache.getExactCallback(topic);
+  if (previousCallback === null) {
+    subscriptionCache.add(topic, callback);
+  }
+  try {
+    await getClient().subscribeAsync(topic);
+    if (subscribeOperationGeneration !== operationGeneration) {
+      return;
+    }
+    if (previousCallback !== null) {
+      subscriptionCache.add(topic, callback);
+    }
+  } catch (err) {
+    if (subscribeOperationGeneration !== operationGeneration) {
+      return;
+    }
+    if (previousCallback !== null) {
+      subscriptionCache.add(topic, previousCallback);
+    } else {
+      subscriptionCache.remove(topic);
+    }
+    throw err;
+  } finally {
+    completeOperation();
+    if (pendingSubscribeOperations.get(topic) === queuedOperation) {
+      pendingSubscribeOperations.delete(topic);
+    }
+  }
 }
 
 
@@ -305,8 +356,11 @@ export async function subscribe(topic: string, callback: fnMessageCallback): Pro
  * @param topic - Topic to unsubscribe from.
  */
 export async function unsubscribe(topic: string): Promise<void> {
-  await getClient().unsubscribeAsync(topic);
-  subscriptionCache.remove(topic);
+  try {
+    await getClient().unsubscribeAsync(topic);
+  } finally {
+    subscriptionCache.remove(topic);
+  }
 }
 
 /**
@@ -314,7 +368,7 @@ export async function unsubscribe(topic: string): Promise<void> {
  * @param topic - Topic to clear
  */
 export async function clearTopic(topic: string): Promise<void> {
-  await client?.publishAsync(topic, '', { retain: true });
+  await getClient().publishAsync(topic, '', { retain: true });
 }
 
 /**
@@ -331,5 +385,7 @@ export function isConnected(): boolean {
  */
 export function _resetForTesting(): void {
   client = null;
+  subscribeOperationGeneration++;
+  pendingSubscribeOperations.clear();
   subscriptionCache.clear();
 }

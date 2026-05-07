@@ -10,10 +10,10 @@
     "build": "tsc",
     "lint": "eslint src --ext .ts",
     "start": "node -r ts-node/register src/app.ts",
-    "test": "mocha src/**/*.spec.ts",
-    "test:no-exit": "mocha src/**/*.spec.ts",
-    "test:coverage": "npx --yes c8 --all --src src --exclude \"src/**/*.spec.ts\" -r text -r text-summary mocha \"src/**/*.spec.ts\"",
-    "test:coverage:json": "npx --yes c8 --all --src src --exclude \"src/**/*.spec.ts\" --reporter=json-summary --reporter=json mocha \"src/**/*.spec.ts\""
+    "test": "cross-env NODE_ENV=test mocha src/**/*.spec.ts",
+    "test:no-exit": "cross-env NODE_ENV=test mocha src/**/*.spec.ts",
+    "test:coverage": "cross-env NODE_ENV=test npx --yes c8 --all --src src --exclude \"src/**/*.spec.ts\" -r text -r text-summary mocha \"src/**/*.spec.ts\"",
+    "test:coverage:json": "cross-env NODE_ENV=test npx --yes c8 --all --src src --exclude \"src/**/*.spec.ts\" --reporter=json-summary --reporter=json mocha \"src/**/*.spec.ts\""
   },
   "dependencies": {
     "app-root-path": "^3.1.0",
@@ -45,6 +45,7 @@
     "@typescript-eslint/eslint-plugin": "^8.59.1",
     "@typescript-eslint/parser": "^8.59.1",
     "chai": "^6.2.2",
+    "cross-env": "^7.0.3",
     "eslint": "^10.3.0",
     "eslint-plugin-jsdoc": "^62.9.0",
     "globals": "^17.6.0",

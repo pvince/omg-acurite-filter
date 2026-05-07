@@ -3,6 +3,8 @@
 import { expect } from 'chai';
 import { afterEach, beforeEach, describe, it } from 'mocha';
 import configuration from './services/configuration';
+import dataCache from './services/dataCache';
+import { homeAssistantDiscoveryService } from './services/homeAssistantDiscovery';
 import { messageForwardingService } from './services/messageForwardingService';
 import { mqttStats } from './services/statistics/passiveStatistics';
 
@@ -13,6 +15,8 @@ function requireApp(): typeof import('./app') {
 }
 
 describe('app processTopic', () => {
+  const originalDataCacheAdd = dataCache.add;
+  const originalEnsureDiscoveryForReport = homeAssistantDiscoveryService.ensureDiscoveryForReport;
   const originalThrottleMessage = messageForwardingService.throttleMessage;
   const originalForwardMessage = messageForwardingService.forwardMessage;
   const originalReplayMode = configuration.isReplayMode;
@@ -22,9 +26,56 @@ describe('app processTopic', () => {
   });
 
   afterEach(() => {
+    dataCache.add = originalDataCacheAdd;
+    homeAssistantDiscoveryService.ensureDiscoveryForReport = originalEnsureDiscoveryForReport;
     messageForwardingService.throttleMessage = originalThrottleMessage;
     messageForwardingService.forwardMessage = originalForwardMessage;
     configuration.isReplayMode = originalReplayMode;
+  });
+
+  it('should ensure discovery before throttling valid rtl_433 sensor reports', async () => {
+    const app = requireApp();
+
+    const raw = {
+      model: 'Acurite-Tower',
+      id: '8623',
+      rssi: -81,
+      channel: 'A',
+      battery_ok: 1,
+      temperature_C: 21.3,
+      humidity: 44
+    };
+
+    let ensureCallCount = 0;
+    let throttleCallCount = 0;
+    let releaseDiscovery = (): void => {
+      throw new Error('Discovery release was not set');
+    };
+
+    dataCache.add = () => true;
+    homeAssistantDiscoveryService.ensureDiscoveryForReport = async () => {
+      ensureCallCount++;
+      await new Promise<void>((resolve) => {
+        releaseDiscovery = resolve;
+      });
+    };
+    messageForwardingService.throttleMessage = () => {
+      throttleCallCount++;
+    };
+
+    app.processTopic('433_direct/raw/OMG_lilygo_rtl_433_ESP/RTL_433toMQTT/Acurite-Tower/A/8623',
+      Buffer.from(JSON.stringify(raw), 'utf8'));
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(ensureCallCount).to.equal(1);
+    expect(throttleCallCount).to.equal(0);
+
+    releaseDiscovery();
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(throttleCallCount).to.equal(1);
   });
 
   it('should forward unknown message types via throttleMessage', () => {
@@ -61,5 +112,118 @@ describe('app processTopic', () => {
 
     expect(forwarded).to.deep.equal({ topic: 'bad/topic', message: '{bad-json' });
     expect(mqttStats.received.unparseable).to.equal(beforeUnparseable + 1);
+  });
+});
+
+describe('app startup', () => {
+  const originalReplayMode = configuration.isReplayMode;
+
+  afterEach(() => {
+    configuration.isReplayMode = originalReplayMode;
+  });
+
+  it('should initialize discovery before source topic subscription', async () => {
+    const app = requireApp();
+    const originalDeps = { ...app._deps };
+    const callOrder: string[] = [];
+
+    app._deps.initializeDataStore = async () => {
+      callOrder.push('dataStore');
+    };
+    app._deps.startMQTT = async () => {
+      callOrder.push('mqtt');
+    };
+    app._deps.initializeDiscovery = async () => {
+      callOrder.push('discovery');
+    };
+    app._deps.subscribe = async () => {
+      callOrder.push('subscribe');
+    };
+    app._deps.startWebService = async () => {
+      callOrder.push('web');
+      return {} as any;
+    };
+
+    try {
+      await app.startup();
+    } finally {
+      Object.assign(app._deps, originalDeps);
+    }
+
+    expect(callOrder).to.deep.equal(['dataStore', 'mqtt', 'discovery', 'subscribe', 'web']);
+  });
+
+  it('should not wait for delayed discovery initialization before subscribing to source topics', async () => {
+    const app = requireApp();
+    const originalDeps = { ...app._deps };
+    const callOrder: string[] = [];
+    let releaseDiscoveryInitialization = (): void => {
+      throw new Error('Discovery initialization release was not set');
+    };
+
+    app._deps.initializeDataStore = async () => {
+      callOrder.push('dataStore');
+    };
+    app._deps.startMQTT = async () => {
+      callOrder.push('mqtt');
+    };
+    app._deps.initializeDiscovery = async () => {
+      callOrder.push('discovery');
+      await new Promise<void>((resolve) => {
+        releaseDiscoveryInitialization = resolve;
+      });
+    };
+    app._deps.subscribe = async () => {
+      callOrder.push('subscribe');
+    };
+    app._deps.startWebService = async () => {
+      callOrder.push('web');
+      return {} as any;
+    };
+
+    try {
+      const startupPromise = app.startup();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(callOrder).to.deep.equal(['dataStore', 'mqtt', 'discovery', 'subscribe', 'web']);
+
+      releaseDiscoveryInitialization();
+      await startupPromise;
+    } finally {
+      Object.assign(app._deps, originalDeps);
+    }
+
+    expect(callOrder).to.deep.equal(['dataStore', 'mqtt', 'discovery', 'subscribe', 'web']);
+  });
+
+  it('should continue startup when discovery initialization fails', async () => {
+    const app = requireApp();
+    const originalDeps = { ...app._deps };
+    const callOrder: string[] = [];
+
+    app._deps.initializeDataStore = async () => {
+      callOrder.push('dataStore');
+    };
+    app._deps.startMQTT = async () => {
+      callOrder.push('mqtt');
+    };
+    app._deps.initializeDiscovery = async () => {
+      callOrder.push('discovery');
+      throw new Error('discovery init failed');
+    };
+    app._deps.subscribe = async () => {
+      callOrder.push('subscribe');
+    };
+    app._deps.startWebService = async () => {
+      callOrder.push('web');
+      return {} as any;
+    };
+
+    try {
+      await app.startup();
+    } finally {
+      Object.assign(app._deps, originalDeps);
+    }
+
+    expect(callOrder).to.deep.equal(['dataStore', 'mqtt', 'discovery', 'subscribe', 'web']);
   });
 });

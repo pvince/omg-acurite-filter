@@ -1,8 +1,7 @@
 ---
-name: Git Commit Haiku
+name: Git Commit
 description: "Use when grouping local git changes into logical commits, staging by intent, and writing concise git commit messages for clean history. Handles git status, diff review, staging, and non-interactive git commit work."
 tools: [execute, read, search]
-model: "Claude Haiku 4.5"
 agents: []
 user-invocable: false
 ---

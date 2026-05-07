@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-magic-numbers */
 import { expect } from 'chai';
 import { describe, it, beforeEach, afterEach } from 'mocha';
-import configuration from './configuration';
+import configuration, { _shouldLoadDotenvForRuntime } from './configuration';
 
 describe('configuration', () => {
   let savedEnv: NodeJS.ProcessEnv;
@@ -25,6 +25,18 @@ describe('configuration', () => {
     it('should return UNSET placeholder when env is missing', () => {
       delete process.env.MQTT_HOST;
       expect(configuration.mqttHost).to.equal('<unset>');
+    });
+  });
+
+  describe('_shouldLoadDotenvForRuntime', () => {
+    it('should return false when NODE_ENV is test', () => {
+      process.env.NODE_ENV = 'test';
+      expect(_shouldLoadDotenvForRuntime()).to.equal(false);
+    });
+
+    it('should return true when NODE_ENV is not test', () => {
+      process.env.NODE_ENV = 'production';
+      expect(_shouldLoadDotenvForRuntime()).to.equal(true);
     });
   });
 
@@ -64,6 +76,23 @@ describe('configuration', () => {
     it('should append /# to destination topic', () => {
       process.env.MQTT_DST_TOPIC = 'home/forwarded';
       expect(configuration.mqttDestTopic).to.equal('home/forwarded/#');
+    });
+  });
+
+  describe('mqttHADiscoveryTopic', () => {
+    it('should return the trimmed env value when set', () => {
+      process.env.MQTT_HADISCOVERY_TOPIC = ' customhome ';
+      expect(configuration.mqttHADiscoveryTopic).to.equal('customhome');
+    });
+
+    it('should return UNSET placeholder when env is missing', () => {
+      delete process.env.MQTT_HADISCOVERY_TOPIC;
+      expect(configuration.mqttHADiscoveryTopic).to.equal('<unset>');
+    });
+
+    it('should return UNSET placeholder when env is empty or whitespace', () => {
+      process.env.MQTT_HADISCOVERY_TOPIC = '   ';
+      expect(configuration.mqttHADiscoveryTopic).to.equal('<unset>');
     });
   });
 

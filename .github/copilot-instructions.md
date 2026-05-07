@@ -94,3 +94,8 @@ Before a task is complete:
 6. If code changes after review feedback, rerun the affected tests, rerun `npm test`, and rerun the code review on the updated diff.
 
 Completion requires passing tests and an approved review on the same final code.
+
+### Review Handoff
+
+- After each Review Gate run, update the `## Review Gate Handoff` section in `/memories/session/plan.md` with only the context the next review pass should start from: open findings, resolved findings worth not re-litigating unless related code changes again, likely next-touch files or behaviors, and current verification freshness.
+- Before any followup Review Gate run, read that handoff section first and include it in the sub-agent prompt.
