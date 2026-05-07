@@ -74,8 +74,7 @@ export async function startWebService(): Promise<Express> {
     });
   });
 
-  let trackedStartup: Promise<Express>;
-  trackedStartup = pendingStartup.finally(() => {
+  const trackedStartup = pendingStartup.finally(() => {
     if (startupPromise === trackedStartup) {
       startupPromise = null;
     }
