@@ -54,7 +54,6 @@ export function gatherForwarders(): IForwarderJob[] {
  */
 export function handleForwarders(req: Request, res: Response): void {
   res.json(gatherForwarders());
-  res.send();
 }
 
 const forwardersRouter = Router();
