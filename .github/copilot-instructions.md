@@ -6,19 +6,19 @@ These instructions apply to the whole repository. Keep them short, follow them e
 
 ## First Reads
 
-- [README.md](README.md) for project intent and background.
-- [docs/architecture.md](docs/architecture.md) for the runtime flow and component boundaries.
-- [docs/http-api.md](docs/http-api.md) for the REST surface.
-- [.env.example](.env.example) for required runtime configuration.
-- [package.json](package.json) for the authoritative scripts.
-- [src/app.ts](src/app.ts) for the live service entrypoint.
-- [src/services/configuration.ts](src/services/configuration.ts) for runtime config behavior.
-- [src/replay.ts](src/replay.ts) for offline replay flow.
+- [README.md](../README.md) for project intent and background.
+- [docs/architecture.md](../docs/architecture.md) for the runtime flow and component boundaries.
+- [docs/http-api.md](../docs/http-api.md) for the REST surface.
+- [.env.example](../.env.example) for required runtime configuration.
+- [package.json](../package.json) for the authoritative scripts.
+- [src/app.ts](../src/app.ts) for the live service entrypoint.
+- [src/services/configuration.ts](../src/services/configuration.ts) for runtime config behavior.
+- [src/replay.ts](../src/replay.ts) for offline replay flow.
 
 ## Commands
 
 - Install dependencies: `npm install`
-- Create local env file: copy [.env.example](.env.example) to `.env` and fill MQTT values.
+- Create local env file: copy [.env.example](../.env.example) to `.env` and fill MQTT values.
 - Run all tests: `npm test`
 - Run one spec: `npx mocha path/to/file.spec.ts`
 - Build and type-check: `npm run build`
@@ -26,20 +26,20 @@ These instructions apply to the whole repository. Keep them short, follow them e
 
 ## Architecture Map
 
-- MQTT ingest and topic utilities: [src/mqtt](src/mqtt)
-- Device parsing and examples: [src/mqtt/omg_devices](src/mqtt/omg_devices)
-- Validation, caching, forwarding, scheduling, and statistics: [src/services](src/services)
-- SQLite persistence: [src/services/database](src/services/database)
-- REST API surface: [src/restapi](src/restapi)
+- MQTT ingest and topic utilities: [src/mqtt](../src/mqtt)
+- Device parsing and examples: [src/mqtt/omg_devices](../src/mqtt/omg_devices)
+- Validation, caching, forwarding, scheduling, and statistics: [src/services](../src/services)
+- SQLite persistence: [src/services/database](../src/services/database)
+- REST API surface: [src/restapi](../src/restapi)
 
 ## Repo Conventions
 
 - Tests are colocated with source as `*.spec.ts` files and use Mocha + Chai.
 - TypeScript is strict. Build failures matter even if tests pass.
-- ESLint is strict and requires JSDoc on many declarations; match the existing style in [.eslintrc](.eslintrc).
-- Runtime configuration comes from environment variables in [.env](.env) via [src/services/configuration.ts](src/services/configuration.ts). Do not treat [configuration.json](configuration.json) as the source of truth.
-- `MQTT_SRC_TOPIC` and `MQTT_DST_TOPIC` are topic prefixes. [src/services/configuration.ts](src/services/configuration.ts) appends `/#` automatically.
-- Unknown or unparseable MQTT messages are intentionally forwarded in [src/app.ts](src/app.ts). Preserve that behavior unless the task explicitly changes it.
+- ESLint is strict and requires JSDoc on many declarations; match the existing style in [eslint.config.mjs](../eslint.config.mjs).
+- Runtime configuration comes from environment variables in [.env](../.env) via [src/services/configuration.ts](../src/services/configuration.ts). Do not treat [configuration.json](../configuration.json) as the source of truth.
+- `MQTT_SRC_TOPIC` and `MQTT_DST_TOPIC` are topic prefixes. [src/services/configuration.ts](../src/services/configuration.ts) appends `/#` automatically.
+- Unknown or unparseable MQTT messages are intentionally forwarded in [src/app.ts](../src/app.ts). Preserve that behavior unless the task explicitly changes it.
 
 ## Development Process
 
@@ -56,6 +56,8 @@ For any non-trivial task:
    - Use Claude Haiku 4.5 for fast read-only scans.
    - Use Claude Sonnet 4.6 when broader synthesis is needed.
 5. Keep the plan implementation-oriented. Avoid vague steps like "update code as needed".
+
+When a plan is accepted, store it in [docs/plans](../docs/plans) with a clear name.
 
 ### Testing
 
